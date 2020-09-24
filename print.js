@@ -1,5 +1,6 @@
 const { Router } = require('express');
-const { } = require('multer');
+//const { diskStorage } = require('multer');
+//todo implement printing
 
 const router = Router({
     caseSensitive: true,

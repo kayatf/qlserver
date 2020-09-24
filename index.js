@@ -21,7 +21,9 @@ app.use((error, _request, response, _next) => response.status(500).json({
     type: error.name || 'Error',
     message: error.message
 }));
+
 app.use(json({ strict: true }));
+
 // todo make configurable
 app.use(session({
     secret: 'EDITLATER',
@@ -39,10 +41,12 @@ app.use(passport.session());
 passport.use(activeDirectoryStrategy);
 
 app.get('/', (_request, response) => response.send(readme));
+
 app.post('/auth', passport.authenticate('ActiveDirectory', { failWithError: true }), (request, response) => response.json({
     error: null,
     user: request.user
 }));
+
 app.use('/print', (request, response, next) => {
     if (request.isAuthenticated()) next();
     else response.status(401).json({
