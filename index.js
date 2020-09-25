@@ -1,6 +1,6 @@
 const express = require('express');
 const { existsSync, readFileSync } = require('fs');
-const { ENCRYPT, CERTIFICATE, PRIVATE_KEY, HOST, PORT } = require('./env');
+const { ENCRYPT, CERTIFICATE, PRIVATE_KEY, HOST, PORT, PROXY } = require('./env');
 const activeDirectoryStrategy = require('./activeDirectoryStrategy');
 const createHttpError = require('http-errors');
 const session = require('express-session');
@@ -10,6 +10,7 @@ const print = require('./print');
 const http = require('http');
 const https = require('https');
 const morgan = require('morgan');
+const helmet = require('helmet');
 
 const readme = marked(readFileSync('./README.md', 'utf-8'));
 
@@ -18,14 +19,20 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 
 const app = express();
 
-app.use(morgan('combined'));
+if (PROXY)
+    app.use('trust proxy', 1);
+app.use(morgan(app.get('env') === 'production' ? 'tiny' : 'dev'));
+app.use(helmet());
 
 // todo make configurable
 app.use(session({
     secret: 'EDITLATER',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false, maxAge: 600000 }
+    cookie: {
+        secure: ENCRYPT,
+        maxAge: null
+    }
 }));
 
 passport.serializeUser((user, done) => done(null, user));

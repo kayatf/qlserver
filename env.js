@@ -11,6 +11,11 @@ module.exports = cleanEnv(process.env, {
         example: '80',
         desc: 'Port the HTTP/S server will bind to'
     }),
+    PROXY: bool({
+        default: false,
+        example: true,
+        desc: "Enable this option if you're running the app. behind a reverse proxy"
+    }),
     POST_MAX_SIZE: num({
         default: 3,
         example: 5,

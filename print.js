@@ -27,10 +27,7 @@ const LABELS = {
 
 const BASE_COMMAND = `brother_ql --backend pyusb --model ${PRINTER}`
 
-const router = Router({
-    caseSensitive: true,
-    strict: true
-});
+const router = Router({ caseSensitive: true });
 
 const bodyParser = (request, _response, next) => getRawBody(request, {
     length: request.headers['content-length'],
@@ -82,8 +79,11 @@ let printingJob = false;
 
 const printImages = (images) => new Promise(async resolve => {
     const printer = await discoverPrinter();
+    console.log(`Using printer at: ${printer}`);
+
     let printing = false;
     printingJob = true;
+
     resolve();
     const interval = setInterval(async () => {
         if (printing)
