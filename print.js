@@ -2,14 +2,13 @@ const createHttpError = require('http-errors');
 const { fromBuffer } = require('file-type');
 const { POST_MAX_SIZE, PRINTER, LABEL_DIMENSIONS } = require('./env');
 const { parse } = require('content-type');
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 const tempWrite = require('temp-write');
 const getRawBody = require('raw-body');
 const { Router } = require('express');
 const AdmZip = require('adm-zip');
+const { unlink } = require('fs');
 const sharp = require('sharp');
-
-const BASE_COMMAND = `brother_ql --backend pyusb --model ${PRINTER}`;
 
 // reference: https://pypi.org/project/brother-ql/
 const LABELS = {
@@ -25,6 +24,8 @@ const LABELS = {
     '102x51': [1164, 526],
     '102x152': [1164, 1660]
 }
+
+const BASE_COMMAND = `brother_ql --backend pyusb --model ${PRINTER}`
 
 const router = Router({
     caseSensitive: true,
@@ -42,21 +43,28 @@ const bodyParser = (request, _response, next) => getRawBody(request, {
     next();
 });
 
-const discoverPrinter = () => new Promise((resolve, reject) => exec(`${BASE_COMMAND} discover`, (error, stdout, stderr) => {
-    if (error)
-        reject(error);
-    else if (stderr.length !== 0) {
-        reject(new Error(stderr));
-    } else {
-        let address = stdout.split('\n').pop();
-        if (address.includes('_'))
-            address = address.split('_')[0];
-        if (!address.startsWith('usb://'))
-            reject(new Error('Could not find attached printer.'));
-        else
-            resolve(address);
-    }
-}));
+const execute = (command) => new Promise((resolve, reject) => exec(command,
+    { env: { PYTHONIOENCODING: 'UTF-8' } }, (error, stdout) => {
+        if (error) reject(error);
+        else resolve(stdout);
+    }));
+
+const executeNoOut = (command) => new Promise((resolve, reject) =>
+    exec(command, { env: { PYTHONIOENCODING: 'UTF-8' } }, error => {
+        if (error)
+            reject(error);
+    }).once('exit', () => resolve()));
+
+const discoverPrinter = () => new Promise(async (resolve, reject) => {
+    const stdout = await execute(`${BASE_COMMAND} discover`);
+    let address = stdout.split(/\r?\n/).reverse()[1];
+    if (address.includes('_'))
+        address = address.split('_')[0];
+    if (!address.startsWith('usb://'))
+        reject(new Error('Could not find attached printer.'));
+    else
+        resolve(address);
+});
 
 const unzipImages = (zipFile) => new Promise(resolve => {
     const images = [];
@@ -70,21 +78,31 @@ const unzipImages = (zipFile) => new Promise(resolve => {
     }));
 });
 
-const printImages = (images) => new Promise((resolve, reject) =>
-    images.forEach(async buffer => {
-        // todo make configurable
-        const image = await tempWrite(await sharp(buffer).extract({
-            width: 367,
-            height: 136,
-            left: 0,
-            top: 0
-        }).resize({
+let taskRunning = false;
+
+const printImages = (images) => new Promise(async resolve => {
+    const printer = await discoverPrinter();
+    let state = false;
+    taskRunning = true;
+    resolve();
+    const interval = setInterval(async () => {
+        if (state)
+            return;
+        state = true;
+        const image = await tempWrite(await sharp(images.pop()).resize({
             fit: 'fill',
             height: LABELS[LABEL_DIMENSIONS][0],
             width: LABELS[LABEL_DIMENSIONS][1]
         }).toBuffer());
-        const command = `${BASE_COMMAND} --printer usb://... print --label ${LABEL_DIMENSIONS} ${image}`;
-    }));
+        await executeNoOut(`${BASE_COMMAND} --printer ${printer} print --label ${LABEL_DIMENSIONS} ${image}`);
+        unlink(image, () => { });
+        state = false;
+        if (images.length === 0) {
+            clearInterval(interval);
+            taskRunning = false;
+        }
+    }, 1000);
+});
 
 router.all('/label', bodyParser, async (request, response, next) => {
     if (request.method !== 'POST')
@@ -92,15 +110,12 @@ router.all('/label', bodyParser, async (request, response, next) => {
     const type = await fromBuffer(request.buffer);
     if (!type)
         return next(createHttpError(400, 'Missing request body (binary).'));
+    if (taskRunning)
+        return next(createHttpError(429, 'There is currently a print job running.'));
     switch (type.mime) {
         case 'application/zip':
-            //await printImages(await unzipImages(request.buffer));
-            //response.sendStatus(200);
-            try {
-                response.json(await discoverPrinter());
-            } catch (error) {
-                next(createHttpError(500, error.message));
-            }
+            await printImages(await unzipImages(request.buffer));
+            response.sendStatus(200);
             break;
         case 'image/png':
             await printImages([request.buffer]);
