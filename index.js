@@ -19,7 +19,6 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 const app = express();
 
 app.use(morgan('combined'));
-app.use(morgan('combined'));
 
 // todo make configurable
 app.use(session({
