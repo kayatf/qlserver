@@ -78,17 +78,17 @@ const unzipImages = (zipFile) => new Promise(resolve => {
     }));
 });
 
-let taskRunning = false;
+let printingJob = false;
 
 const printImages = (images) => new Promise(async resolve => {
     const printer = await discoverPrinter();
-    let state = false;
-    taskRunning = true;
+    let printing = false;
+    printingJob = true;
     resolve();
     const interval = setInterval(async () => {
-        if (state)
+        if (printing)
             return;
-        state = true;
+        printing = true;
         const image = await tempWrite(await sharp(images.pop()).resize({
             fit: 'fill',
             height: LABELS[LABEL_DIMENSIONS][0],
@@ -96,10 +96,10 @@ const printImages = (images) => new Promise(async resolve => {
         }).toBuffer());
         await executeNoOut(`${BASE_COMMAND} --printer ${printer} print --label ${LABEL_DIMENSIONS} ${image}`);
         unlink(image, () => { });
-        state = false;
+        printing = false;
         if (images.length === 0) {
             clearInterval(interval);
-            taskRunning = false;
+            printingJob = false;
         }
     }, 1000);
 });
@@ -107,11 +107,11 @@ const printImages = (images) => new Promise(async resolve => {
 router.all('/label', bodyParser, async (request, response, next) => {
     if (request.method !== 'POST')
         return next(createHttpError(405));
+    if (printingJob)
+        return next(createHttpError(429, 'There is currently a print job running.'));
     const type = await fromBuffer(request.buffer);
     if (!type)
         return next(createHttpError(400, 'Missing request body (binary).'));
-    if (taskRunning)
-        return next(createHttpError(429, 'There is currently a print job running.'));
     switch (type.mime) {
         case 'application/zip':
             await printImages(await unzipImages(request.buffer));
