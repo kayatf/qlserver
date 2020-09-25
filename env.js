@@ -1,4 +1,4 @@
-const { cleanEnv, str, url, host, port, bool } = require('envalid');
+const { cleanEnv, str, url, host, port, bool, num } = require('envalid');
 
 module.exports = cleanEnv(process.env, {
     HOST: host({
@@ -10,6 +10,11 @@ module.exports = cleanEnv(process.env, {
         default: '1312',
         example: '80',
         desc: 'Port the HTTP/S server will bind to'
+    }),
+    POST_MAX_SIZE: num({
+        default: 3,
+        example: 5,
+        desc: 'Max. file size of request body'
     }),
     ENCRYPT: bool({
         default: false,

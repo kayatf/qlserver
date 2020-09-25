@@ -1,14 +1,15 @@
 const express = require('express');
-const { json } = require('body-parser');
 const { existsSync, readFileSync } = require('fs');
 const { ENCRYPT, CERTIFICATE, PRIVATE_KEY, HOST, PORT } = require('./env');
 const activeDirectoryStrategy = require('./activeDirectoryStrategy');
+const createHttpError = require('http-errors');
 const session = require('express-session');
 const passport = require('passport');
 const marked = require('marked');
 const print = require('./print');
 const http = require('http');
 const https = require('https');
+const morgan = require('morgan');
 
 const readme = marked(readFileSync('./README.md', 'utf-8'));
 
@@ -17,12 +18,8 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 
 const app = express();
 
-app.use((error, _request, response, _next) => response.status(500).json({
-    type: error.name || 'Error',
-    message: error.message
-}));
-
-app.use(json({ strict: true }));
+app.use(morgan('combined'));
+app.use(morgan('combined'));
 
 // todo make configurable
 app.use(session({
@@ -40,20 +37,32 @@ app.use(passport.session());
 
 passport.use(activeDirectoryStrategy);
 
-app.get('/', (_request, response) => response.send(readme));
+app.all('/', (request, response, next) => {
+    if (request.method !== 'GET')
+        return next(createHttpError(405));
+    response.send(readme);
+});
 
-app.post('/auth', passport.authenticate('ActiveDirectory', { failWithError: true }), (request, response) => response.json({
-    error: null,
-    user: request.user
-}));
+app.all('/auth', passport.authenticate('ActiveDirectory', { failWithError: true }),
+    (request, response, next) => {
+        if (request.method !== 'POST')
+            return next(createHttpError(405));
+        response.json({
+            error: null,
+            user: request.user
+        })
+    });
 
-app.use('/print', (request, response, next) => {
-    if (request.isAuthenticated()) next();
-    else response.status(401).json({
-        type: 'AuthenticationError',
-        message: 'Not authenticated'
-    })
-}, print);
+app.use('/print', (request, _response, next) =>
+    next(!request.isAuthenticated ? createHttpError(401) : undefined), print);
+
+app.use((_request, _response, next) => next(createHttpError(404)));
+
+app.use((error, _request, response, _next) =>
+    response.status(error.status || 500).json({
+        type: error.name || 'Error',
+        message: error.message
+    }));
 
 let server;
 const serverCallback = () => {
