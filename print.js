@@ -1,6 +1,6 @@
+const { POST_MAX_SIZE, PRINTER, LABEL_DIMENSIONS } = require('./env');
 const createHttpError = require('http-errors');
 const { fromBuffer } = require('file-type');
-const { POST_MAX_SIZE, PRINTER, LABEL_DIMENSIONS } = require('./env');
 const { parse } = require('content-type');
 const { exec } = require('child_process');
 const tempWrite = require('temp-write');
@@ -40,20 +40,17 @@ const bodyParser = (request, _response, next) => getRawBody(request, {
     next();
 });
 
-const execute = (command) => new Promise((resolve, reject) => exec(command,
-    { env: { PYTHONIOENCODING: 'UTF-8' } }, (error, stdout) => {
+const execute = (exitHook, command) => new Promise((resolve, reject) => {
+    const process = exec(command, { env: { PYTHONIOENCODING: 'UTF-8' } }, (error, stdout) => {
         if (error) reject(error);
-        else resolve(stdout);
-    }));
-
-const executeNoOut = (command) => new Promise((resolve, reject) =>
-    exec(command, { env: { PYTHONIOENCODING: 'UTF-8' } }, error => {
-        if (error)
-            reject(error);
-    }).once('exit', () => resolve()));
+        else if (!exitHook) resolve(stdout);
+    });
+    if (exitHook)
+        process.once('exit', () => resolve());
+})
 
 const discoverPrinter = () => new Promise(async (resolve, reject) => {
-    const stdout = await execute(`${BASE_COMMAND} discover`);
+    const stdout = await execute(false, `${BASE_COMMAND} discover`);
     let address = stdout.split(/\r?\n/).reverse()[1];
     if (address.includes('_'))
         address = address.split('_')[0];
@@ -94,7 +91,7 @@ const printImages = (images) => new Promise(async resolve => {
             height: LABELS[LABEL_DIMENSIONS][0],
             width: LABELS[LABEL_DIMENSIONS][1]
         }).toBuffer());
-        await executeNoOut(`${BASE_COMMAND} --printer ${printer} print --label ${LABEL_DIMENSIONS} ${image}`);
+        await execute(true, `${BASE_COMMAND} --printer ${printer} print --label ${LABEL_DIMENSIONS} ${image}`);
         unlink(image, () => { });
         printing = false;
         if (images.length === 0) {
@@ -119,7 +116,7 @@ router.all('/label', bodyParser, async (request, response, next) => {
             break;
         case 'image/png':
             await printImages([request.buffer]);
-            response.json({});
+            response.sendStatus(200);
             break;
         default:
             return next(createHttpError(400, `Unsupported file enconding (${type.mime}).`));

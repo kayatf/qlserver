@@ -3,7 +3,9 @@ const { existsSync, readFileSync } = require('fs');
 const { ENCRYPT, CERTIFICATE, PRIVATE_KEY, HOST, PORT, PROXY } = require('./env');
 const activeDirectoryStrategy = require('./activeDirectoryStrategy');
 const createHttpError = require('http-errors');
+const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const { json } = require('body-parser');
 const passport = require('passport');
 const marked = require('marked');
 const print = require('./print');
@@ -11,6 +13,7 @@ const http = require('http');
 const https = require('https');
 const morgan = require('morgan');
 const helmet = require('helmet');
+const cors = require('cors');
 
 const readme = marked(readFileSync('./README.md', 'utf-8'));
 
@@ -19,20 +22,31 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 
 const app = express();
 
+app.use(morgan(app.get('env') === 'production' ? 'tiny' : 'dev'));
 if (PROXY)
     app.use('trust proxy', 1);
-app.use(morgan(app.get('env') === 'production' ? 'tiny' : 'dev'));
-app.use(helmet());
+//app.use(helmet());
+app.use(cookieParser());
+app.use(json());
 
 // todo make configurable
 app.use(session({
     secret: 'EDITLATER',
-    resave: false,
-    saveUninitialized: false,
     cookie: {
-        secure: ENCRYPT,
-        maxAge: null
-    }
+        maxAge: 600000,
+        secure: ENCRYPT
+    },
+    saveUninitialized: false,
+    resave: false,
+    unset: 'destroy'
+}));
+
+// todo make configurable
+app.use(cors({
+    origin: 'https://inventory.essteyr.com',
+    methods: ['GET', 'POST'],
+    exposedHeaders: ['Set-Cookie'],
+    credentials: true
 }));
 
 passport.serializeUser((user, done) => done(null, user));
@@ -49,18 +63,23 @@ app.all('/', (request, response, next) => {
     response.send(readme);
 });
 
+app.all('/status', (request, response, next) => {
+    if (request.method !== 'GET')
+        return next(createHttpError(405));
+    response.json({
+        authenticated: request.isAuthenticated(),
+        user: request.user || null
+    });
+});
+
 app.all('/auth', passport.authenticate('ActiveDirectory', { failWithError: true }),
     (request, response, next) => {
         if (request.method !== 'POST')
             return next(createHttpError(405));
-        response.json({
-            error: null,
-            user: request.user
-        })
+        response.json({ user: request.user });
     });
 
-app.use('/print', (request, _response, next) =>
-    next(!request.isAuthenticated ? createHttpError(401) : undefined), print);
+app.use('/print', passport.authenticate('session'), print);
 
 app.use((_request, _response, next) => next(createHttpError(404)));
 
