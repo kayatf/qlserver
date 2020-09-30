@@ -1,7 +1,8 @@
 const express = require('express');
-const { existsSync, readFileSync } = require('fs');
+const { existsSync, readFileSync, writeFileSync } = require('fs');
 const { ENCRYPT, CERTIFICATE, PRIVATE_KEY, HOST, PORT, PROXY } = require('./env');
 const activeDirectoryStrategy = require('./activeDirectoryStrategy');
+const cryptoRandomString = require('crypto-random-string');
 const createHttpError = require('http-errors');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
@@ -17,12 +18,12 @@ const cors = require('cors');
 
 const readme = marked(readFileSync('./README.md', 'utf-8'));
 
-// todo prevent using this
-process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
-
 const app = express();
+const production = app.get('env') === 'production';
+if (!production)
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 
-app.use(morgan(app.get('env') === 'production' ? 'tiny' : 'dev'));
+app.use(morgan(production ? 'tiny' : 'dev'));
 if (PROXY)
     app.use('trust proxy', 1);
 app.use(helmet());
@@ -32,19 +33,28 @@ app.use(json());
 app.use('/', cors({
     origin: true,
     credentials: true,
-    exposedHeaders: ['set-cookie'],
+    exposedHeaders: ['Set-Cookie'],
 }));
 
-// todo make configurable
+let sessionToken = '';
+const sessionTokenPath = '.session-token';
+if (!existsSync(sessionTokenPath)) {
+    const token = cryptoRandomString({
+        length: 32,
+        type: 'ascii-printable'
+    });
+    writeFileSync(sessionTokenPath, token);
+    sessionToken = token;
+} else sessionToken = readFileSync(sessionTokenPath, 'UTF-8');
+
 app.use(session({
-    secret: 'EDITLATER',
+    secret: sessionToken,
     cookie: {
-        maxAge: 600000,
-        sameSite: 'lax',
-        secure: ENCRYPT,
+        sameSite: production ? 'strict' : 'lax',
+        secure: ENCRYPT
     },
     saveUninitialized: true,
-    resave: true,
+    resave: true
 }));
 
 passport.serializeUser((user, done) => done(null, user));
