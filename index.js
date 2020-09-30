@@ -25,28 +25,26 @@ const app = express();
 app.use(morgan(app.get('env') === 'production' ? 'tiny' : 'dev'));
 if (PROXY)
     app.use('trust proxy', 1);
-//app.use(helmet());
+app.use(helmet());
 app.use(cookieParser());
 app.use(json());
+
+app.use('/', cors({
+    origin: true,
+    credentials: true,
+    exposedHeaders: ['set-cookie'],
+}));
 
 // todo make configurable
 app.use(session({
     secret: 'EDITLATER',
     cookie: {
         maxAge: 600000,
-        secure: ENCRYPT
+        sameSite: 'lax',
+        secure: ENCRYPT,
     },
-    saveUninitialized: false,
-    resave: false,
-    unset: 'destroy'
-}));
-
-// todo make configurable
-app.use(cors({
-    origin: 'https://inventory.essteyr.com',
-    methods: ['GET', 'POST'],
-    exposedHeaders: ['Set-Cookie'],
-    credentials: true
+    saveUninitialized: true,
+    resave: true,
 }));
 
 passport.serializeUser((user, done) => done(null, user));
@@ -55,7 +53,7 @@ passport.deserializeUser((user, done) => done(null, user));
 app.use(passport.initialize());
 app.use(passport.session());
 
-passport.use(activeDirectoryStrategy);
+passport.use(activeDirectoryStrategy)
 
 app.all('/', (request, response, next) => {
     if (request.method !== 'GET')
@@ -79,7 +77,7 @@ app.all('/auth', passport.authenticate('ActiveDirectory', { failWithError: true 
         response.json({ user: request.user });
     });
 
-app.use('/print', passport.authenticate('session'), print);
+app.use('/print', (request, _response, next) => next(!request.isAuthenticated() ? createHttpError(401) : undefined), print);
 
 app.use((_request, _response, next) => next(createHttpError(404)));
 

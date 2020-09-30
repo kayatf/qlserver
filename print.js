@@ -74,8 +74,13 @@ const unzipImages = (zipFile) => new Promise(resolve => {
 
 let printingJob = false;
 
-const printImages = (images) => new Promise(async resolve => {
-    const printer = await discoverPrinter();
+const printImages = (images) => new Promise(async (resolve, reject) => {
+    let printer;
+    try {
+        printer = await discoverPrinter()
+    } catch (error) {
+        return reject(error);
+    }
     console.log(`Using printer at: ${printer}`);
 
     let printing = false;
@@ -109,17 +114,21 @@ router.all('/label', bodyParser, async (request, response, next) => {
     const type = await fromBuffer(request.buffer);
     if (!type)
         return next(createHttpError(400, 'Missing request body (binary).'));
-    switch (type.mime) {
-        case 'application/zip':
-            await printImages(await unzipImages(request.buffer));
-            response.sendStatus(200);
-            break;
-        case 'image/png':
-            await printImages([request.buffer]);
-            response.sendStatus(200);
-            break;
-        default:
-            return next(createHttpError(400, `Unsupported file enconding (${type.mime}).`));
+    try {
+        switch (type.mime) {
+            case 'application/zip':
+                await printImages(await unzipImages(request.buffer));
+                response.sendStatus(200);
+                break;
+            case 'image/png':
+                await printImages([request.buffer]);
+                response.sendStatus(200);
+                break;
+            default:
+                throw new Error(`Unsupported file enconding (${type.mime}).`);
+        }
+    } catch (error) {
+        return next(createHttpError(500, error.message));
     }
 });
 
