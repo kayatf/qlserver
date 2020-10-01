@@ -59,7 +59,7 @@ export const exists = (path: PathLike): Promise<boolean> =>
     access(formatPath(path), constants.F_OK, error => resolve(null === error))
   );
 
-export const write = (path: PathLike, data: any): Promise<any> =>
+export const write = (path: PathLike, data: string): Promise<string> =>
   new Promise((resolve, reject) => {
     writeFile(formatPath(path), data, error => {
       if (error) reject(error);
@@ -67,7 +67,7 @@ export const write = (path: PathLike, data: any): Promise<any> =>
     });
   });
 
-export const remove = (path: PathLike): Promise<any> =>
+export const remove = (path: PathLike): Promise<void> =>
   new Promise<void>(resolve => {
     unlink(path, error => {
       if (error) console.warn(error);

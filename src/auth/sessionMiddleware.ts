@@ -36,19 +36,19 @@ import session from 'express-session';
 import env from '../env';
 
 const getSessionToken = (): Promise<string> =>
-  new Promise(async resolve => {
+  new Promise(resolve => {
     const path: string = env.ENCRYPT_SECRET_PATH;
-    if (await exists(path)) resolve(await read(path));
-    else
-      resolve(
-        await write(
+    exists(path).then(exists => {
+      if (exists) read(path).then(resolve);
+      else
+        write(
           path,
           cryptoRandomString({
             length: env.ENCRYPT_SECRET_LENGTH,
             type: 'ascii-printable',
           })
-        )
-      );
+        ).then(resolve);
+    });
   });
 
 export default async (): Promise<RequestHandler> =>

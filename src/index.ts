@@ -95,7 +95,7 @@ if (env.isDevelopment) process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
   // session status
   app.all('/status', method('GET'), (request: Request, response: Response) =>
-    respond(request, response, null, {
+    respond(request, response, undefined, {
       isAuthenticated: request.isAuthenticated(),
       user: request.user || null,
     })

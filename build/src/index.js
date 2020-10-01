@@ -77,7 +77,7 @@ if (env_1.default.isDevelopment)
     // authentication
     app.all('/auth', expressUtil_1.method('POST'), authenticator_1.authenticate(), (request, response) => expressUtil_1.respond(request, response, undefined, { user: request.user }));
     // session status
-    app.all('/status', expressUtil_1.method('GET'), (request, response) => expressUtil_1.respond(request, response, null, {
+    app.all('/status', expressUtil_1.method('GET'), (request, response) => expressUtil_1.respond(request, response, undefined, {
         isAuthenticated: request.isAuthenticated(),
         user: request.user || null,
     }));

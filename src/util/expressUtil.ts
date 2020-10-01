@@ -31,15 +31,15 @@
 
 import {NextFunction, Request, RequestHandler, Response} from 'express';
 import {json2html} from '@naturalcycles/json2html';
-import createHttpError from 'http-errors';
+import createHttpError, {HttpError} from 'http-errors';
 
 export const respond = (
   request: Request,
   response: Response,
-  error: any,
-  data: any = {}
+  error?: HttpError | Error,
+  data = {}
 ): void => {
-  if (error) response.status(error.status || 500);
+  if (error) response.status(error instanceof HttpError ? error.status : 500);
   const body: any = {
     status: response.statusCode,
     error: {

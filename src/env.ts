@@ -29,7 +29,7 @@
  * SOFTWARE.
  */
 
-const {cleanEnv, str, url, host, port, bool, num} = require('envalid');
+import {bool, cleanEnv, host, num, port, str, url} from 'envalid';
 
 export default cleanEnv(process.env, {
   HOST: host({
@@ -38,24 +38,21 @@ export default cleanEnv(process.env, {
     desc: 'Host the HTTP/s server will bind to',
   }),
   PORT: port({
-    default: '1312',
+    default: 1312,
     example: '80',
     desc: 'Port the HTTP/S server will bind to',
   }),
   PROXY: bool({
     default: false,
-    example: true,
     desc:
       "Enable this option if you're running the app. behind a reverse proxy",
   }),
   POST_MAX_SIZE: num({
     default: 3,
-    example: 5,
     desc: 'Max. file size of request body',
   }),
   ENCRYPT: bool({
     default: false,
-    example: true,
     desc: 'Should HTTPS be used (certificate has to be set up for this)',
   }),
   ENCRYPT_SECRET_PATH: str({
@@ -66,7 +63,6 @@ export default cleanEnv(process.env, {
   }),
   ENCRYPT_SECRET_LENGTH: num({
     default: 32,
-    example: 32,
     desc: 'Length of the cryptographic used to encrypt sessions with',
   }),
   CERTIFICATE: str({

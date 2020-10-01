@@ -53,12 +53,15 @@ const LABELS: any = {
 };
 
 const discoverBrotherInterface = (): Promise<string> =>
-  new Promise<string>(async (resolve, reject) => {
-    const brother: string | undefined = await lookpath('brother_ql');
-    if (!brother)
-      return reject(new Error('Could not find brother_ql executable in PATH.'));
-    resolve(brother);
-  });
+  new Promise<string>((resolve, reject) =>
+    lookpath('brother_ql').then(path => {
+      if (!path)
+        return reject(
+          new Error('Could not find brother_ql executable in PATH.')
+        );
+      resolve(path);
+    })
+  );
 
 const executeCommand = (command: string): Promise<string> =>
   new Promise((resolve, reject) =>
@@ -79,12 +82,15 @@ const executeCommand = (command: string): Promise<string> =>
   );
 
 const discoverPrinter = (brotherInterface: string): Promise<string> =>
-  new Promise<string>(async (resolve, reject) => {
-    const stdout: string = await executeCommand(`${brotherInterface} discover`);
-    let address: string = stdout.split(/\r?\n/).reverse()[1];
-    if (address.includes('_')) address = address.split('_')[0];
-    if (address.startsWith('usb://')) resolve(address);
-    else reject(new Error('Could not find attached printer.'));
+  new Promise<string>((resolve, reject) => {
+    executeCommand(`${brotherInterface} discover`)
+      .then(stdout => {
+        let address: string = stdout.split(/\r?\n/).reverse()[1];
+        if (address.includes('_')) address = address.split('_')[0];
+        if (address.startsWith('usb://')) resolve(address);
+        else reject(new Error('Could not find attached printer.'));
+      })
+      .catch(reject);
   });
 
 export const printQueue = new Array<Buffer>();
