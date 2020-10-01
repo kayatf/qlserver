@@ -1,5 +1,6 @@
-node_modules/
-build/
-cert/
 .session-token
 .env
+
+/node_modules/
+/build/
+/cert/
