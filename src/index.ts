@@ -109,24 +109,22 @@ if (env.isDevelopment) process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     rawBodyParser(),
     async (request: Request, response: Response, next: NextFunction) => {
       const type: FileTypeResult | undefined = await fromBuffer(request.body);
-      if (!type) {
-        console.log(1);
+      if (!type)
         return next(createHttpError(400, 'Missing request body (binary).'));
-      }
       switch (type.mime) {
         case 'application/zip':
           const items: Buffer[] = await unzip(request.body, 'image/png');
           printQueue.push(...items);
           respond(request, response, undefined, {
             addedItems: items.length,
-            positionInQueue: printQueue.length - items.length + 1,
+            positionInQueue: 1 + printQueue.length - items.length,
           });
           break;
         case 'image/png':
           printQueue.push(request.body);
           respond(request, response, undefined, {
             addedItems: 1,
-            positionInQueue: printQueue.length + 1,
+            positionInQueue: 1 + printQueue.length,
           });
           break;
         default:
