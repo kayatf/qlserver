@@ -10,7 +10,7 @@
     "dev": "tsc-watch --onSuccess \"cross-env NODE_ENV=development node .\"",
     "check": "gts check",
     "clean": "gts clean",
-    "compile": "tsc",
+    "compile": "npm.cmd run fix && tsc",
     "fix": "gts fix",
     "prepare": "npm.cmd run compile",
     "pretest": "npm.cmd run compile",
