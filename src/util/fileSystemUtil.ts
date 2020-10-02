@@ -73,7 +73,7 @@ export const remove = (path: PathLike): Promise<void> =>
   new Promise<void>(resolve => {
     unlink(path, error => {
       if (error) console.warn(error);
-      else resolve();
+      resolve();
     });
   });
 
