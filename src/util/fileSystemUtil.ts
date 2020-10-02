@@ -56,7 +56,9 @@ export const unzip = (
 
 export const exists = (path: PathLike): Promise<boolean> =>
   new Promise(resolve =>
-    access(formatPath(path), constants.F_OK, error => resolve(null === error))
+    access(formatPath(path), constants.F_OK, error =>
+      resolve(undefined === error)
+    )
   );
 
 export const write = (path: PathLike, data: string): Promise<string> =>
