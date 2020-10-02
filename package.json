@@ -5,16 +5,16 @@
   "main": "build/src/index",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "npm-watch start",
     "start": "cross-env NODE_ENV=production node .",
     "dev": "tsc-watch --onSuccess \"cross-env NODE_ENV=development node .\"",
-    "check": "gts check",
-    "clean": "gts clean",
-    "compile": "npm.cmd run fix && tsc",
-    "fix": "gts fix",
+    "clean": "gts clean && del-cli --force bin/",
+    "compile": "npm-run-all clean fix && tsc && ncc build build/src/index.js -o bin/ && cd bin/ && pkg -o qlserver -t node12-win-x86,node12-win-x64 index.js",
     "prepare": "npm.cmd run compile",
     "pretest": "npm.cmd run compile",
-    "posttest": "npm.cmd run check"
+    "posttest": "npm.cmd run check",
+    "push": "npm-run-all check compile && git push -u master",
+    "fix": "gts fix",
+    "check": "gts check"
   },
   "keywords": [],
   "author": "Riegler Daniel",
@@ -62,8 +62,13 @@
     "@types/passport": "^1.0.4",
     "@types/sharp": "^0.26.0",
     "@types/swagger-ui-express": "^4.1.2",
+    "@vercel/ncc": "^0.24.1",
     "cross-env": "^7.0.2",
+    "del-cli": "^3.0.1",
     "gts": "^2.0.2",
+    "ncc": "^0.3.6",
+    "npm-run-all": "^4.1.5",
+    "pkg": "^4.4.9",
     "tsc-watch": "^4.2.9",
     "typescript": "^3.8.3"
   }
