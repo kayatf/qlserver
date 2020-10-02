@@ -29,14 +29,28 @@
  * SOFTWARE.
  */
 
-import {access, constants, PathLike, readFile, unlink, writeFile} from 'fs';
+import {existsSync, PathLike, readFile, unlink, writeFile} from 'fs';
 import {FileTypeResult, fromBuffer} from 'file-type';
 import AdmZip, {IZipEntry} from 'adm-zip';
 import {join} from 'path';
 import {MimeType} from 'file-type/core';
+import getAppDataPath from 'appdata-path';
 
-const formatPath = (path: PathLike) =>
-  join(__dirname, '../', '../', '../', path.toString());
+const appDataPath = getAppDataPath('.qlserver');
+
+const formatPath = (path: PathLike) => join(appDataPath, path.toString());
+
+// export const createAppDataEntry = (): Promise<void> =>
+//   new Promise<void>((resolve, reject) =>
+//     exists(appDataPath).then(exists => {
+//       if (exists) resolve();
+//       else
+//         mkdir(appDataPath, error => {
+//           if (error) reject(error);
+//           else resolve();
+//         });
+//     })
+//   );
 
 export const unzip = (
   zipFile: Buffer,
@@ -54,12 +68,9 @@ export const unzip = (
     );
   });
 
+// todo check asynchronously
 export const exists = (path: PathLike): Promise<boolean> =>
-  new Promise(resolve =>
-    access(formatPath(path), constants.F_OK, error =>
-      resolve(undefined === error)
-    )
-  );
+  new Promise(resolve => resolve(existsSync(formatPath(path))));
 
 export const write = (path: PathLike, data: string): Promise<string> =>
   new Promise((resolve, reject) => {

@@ -40,10 +40,9 @@ import queueRouter from './router/queueRouter';
 import authRouter from './router/authRouter';
 import createHttpError from 'http-errors';
 import {serve, setup} from 'swagger-ui-express';
-import swaggerConfig from '../swagger.json';
+import swaggerConfig from './swagger.json';
 import http, {Server} from 'http';
 import {json} from 'body-parser';
-import marked from 'marked';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import https from 'https';
@@ -54,9 +53,16 @@ import env from './env';
 if (env.isDevelopment) process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
 (async () => {
-  console.log(await read('./console_header.txt'));
+  console.log(
+    '    ________________ __\n' +
+      '   / ____/ ___/ ___// /____  __  _______\n' +
+      '  / __/  \\__ \\\\__ \\/ __/ _ \\/ / / / ___/\n' +
+      ' / /___ ___/ /__/ / /_/  __/ /_/ / /\n' +
+      '/_____//____/____/\\__/\\___/\\__, /_/\n' +
+      'https://git.io/JUSCj      /____/\n' +
+      '============================================\n'
+  );
   if (!env.isProduction) console.warn('Running not in production mode!');
-
   const app: Express = express();
 
   // middleware
@@ -72,15 +78,8 @@ if (env.isDevelopment) process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     })
   );
 
-  // readme page
-  const readme: string = marked(await read('./README.md'));
-  app.all('/', (request: Request, response: Response, next: NextFunction) => {
-    if ('GET' !== request.method) next(createHttpError(405));
-    else response.send(readme);
-  });
-
   // serve swagger api docs
-  app.use('/docs', serve, setup(swaggerConfig));
+  app.use(serve, setup(swaggerConfig));
 
   // setup authentication
   initAuthenticator(app);
@@ -119,10 +118,11 @@ if (env.isDevelopment) process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     : http.createServer(app).listen(env.PORT, env.HOST);
 
   server.once('listening', () => {
+    console.log('Shutting down server...');
     gracefulShutdown(server, {
       timeout: 1000 * 10,
       development: env.isDevelopment,
-      finally: () => console.log('Shut down webserver.'),
+      finally: () => console.log('Server shutdown complete.'),
     });
     console.log(
       `Listening on ${env.ENCRYPT ? 'https' : 'http'}://${env.HOST}:${env.PORT}`

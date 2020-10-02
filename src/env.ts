@@ -55,12 +55,6 @@ export default cleanEnv(process.env, {
     default: false,
     desc: 'Should HTTPS be used (certificate has to be set up for this)',
   }),
-  ENCRYPT_SECRET_PATH: str({
-    default: '.session-token',
-    example: '.session-token',
-    desc:
-      'Location of a text file containing a cryptographic key to encrypt sessions with',
-  }),
   ENCRYPT_SECRET_LENGTH: num({
     default: 32,
     desc: 'Length of the cryptographic used to encrypt sessions with',

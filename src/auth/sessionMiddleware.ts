@@ -37,12 +37,11 @@ import env from '../env';
 
 const getSessionToken = (): Promise<string> =>
   new Promise(resolve => {
-    const path: string = env.ENCRYPT_SECRET_PATH;
-    exists(path).then(exists => {
-      if (exists) read(path).then(resolve);
+    exists('.token').then(exists => {
+      if (exists) read('.token').then(resolve);
       else
         write(
-          path,
+          '.token',
           cryptoRandomString({
             length: env.ENCRYPT_SECRET_LENGTH,
             type: 'ascii-printable',
