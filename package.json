@@ -63,6 +63,7 @@
     "@types/sharp": "^0.26.0",
     "@types/swagger-ui-express": "^4.1.2",
     "@vercel/ncc": "^0.24.1",
+    "ws": ">=3.3.1",
     "cross-env": "^7.0.2",
     "del-cli": "^3.0.1",
     "gts": "^2.0.2",
