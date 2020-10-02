@@ -8,11 +8,11 @@
     "start": "cross-env NODE_ENV=production node .",
     "dev": "tsc-watch --onSuccess \"cross-env NODE_ENV=development node .\"",
     "clean": "gts clean && del-cli --force bin/",
-    "compile": "npm-run-all clean fix && tsc && ncc build build/src/index.js -o bin/ && cd bin/ && pkg -o qlserver -t node12-win-x86,node12-win-x64 index.js",
+    "compile": "npm-run-all clean check && tsc && ncc build build/src/index.js -o bin/ && cd bin/ && pkg -o qlserver -t node12-win-x86,node12-win-x64 index.js",
     "prepare": "npm.cmd run compile",
     "pretest": "npm.cmd run compile",
     "posttest": "npm.cmd run check",
-    "push": "npm-run-all check compile && git push -u master",
+    "push": "npm.cmd run compile && git push",
     "fix": "gts fix",
     "check": "gts check"
   },
