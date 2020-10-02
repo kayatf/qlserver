@@ -42,14 +42,14 @@ export const unzip = (
   zipFile: Buffer,
   ...fileTypes: MimeType[]
 ): Promise<Buffer[]> =>
-  new Promise<Buffer[]>(resovle => {
+  new Promise<Buffer[]>(resolve => {
     const files = new Array<Buffer>();
     const entries: IZipEntry[] = new AdmZip(zipFile).getEntries();
     entries.forEach((entry: IZipEntry, index: number) =>
       entry.getDataAsync(async buffer => {
         const type: FileTypeResult | undefined = await fromBuffer(buffer);
         if (type && fileTypes.includes(type.mime)) files.push(buffer);
-        if (entries.length - 1 === index) resovle(files);
+        if (entries.length - 1 === index) resolve(files);
       })
     );
   });
