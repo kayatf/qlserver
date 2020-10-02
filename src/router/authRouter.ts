@@ -29,51 +29,26 @@
  * SOFTWARE.
  */
 
-import {
-  Express,
-  NextFunction,
-  Request,
-  RequestHandler,
-  Response,
-} from 'express';
-import env from '../env';
-import passport from 'passport';
-import LdapStrategy from 'passport-ldapauth';
+import {NextFunction, Request, Response, Router} from 'express';
+import respond from '../util/respond';
+import {authenticate} from '../auth/authenticator';
 import createHttpError from 'http-errors';
 
-export const initAuthenticator = (app: Express): void => {
-  passport.serializeUser((user, done) => done(null, user));
-  passport.deserializeUser((user, done) => done(null, user));
+const router: Router = Router();
 
-  app.use(passport.initialize());
-  app.use(passport.session());
+router.get('/', (request: Request, response: Response) =>
+  respond(request, response, undefined, {
+    isAuthenticated: request.isAuthenticated(),
+    user: request.user || null,
+  })
+);
 
-  passport.use(
-    new LdapStrategy(
-      {
-        server: {
-          url: env.LDAP_URL,
-          bindDN: env.LDAP_BIND_DN,
-          bindCredentials: env.LDAP_BIND_CREDENTIAL,
-          searchBase: env.LDAP_SEARCH_BASE,
-          searchFilter: env.LDAP_SEARCH_FILTER,
-          searchAttributes: env.LDAP_SEARCH_ATTRIBUTES.split(','),
-        },
-      },
-      (user: unknown, done: (error: unknown, user: unknown) => void) =>
-        done(null, user)
-    )
-  );
-};
+router.post('/', authenticate(), (request: Request, response: Response) =>
+  respond(request, response, undefined, {user: request.user})
+);
 
-export const authenticate = (): RequestHandler =>
-  passport.authenticate('ldapauth', {failWithError: true});
+router.all('/', (request: Request, response: Response, next: NextFunction) =>
+  next(createHttpError(405))
+);
 
-export const requireAuthentication = (): RequestHandler => (
-  request: Request,
-  _response: Response,
-  next: NextFunction
-) => {
-  if (env.isDevelopment || request.isAuthenticated) next();
-  else next(createHttpError(401));
-};
+export default router;

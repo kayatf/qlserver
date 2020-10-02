@@ -30,17 +30,17 @@
  */
 
 import express, {Express, NextFunction, Request, Response} from 'express';
-import {
-  authenticate,
-  initAuthenticator,
-  requireAuthentication,
-} from './auth/authenticator';
+import {initAuthenticator, requireAuthentication} from './auth/authenticator';
 import gracefulShutdown from 'http-graceful-shutdown';
-import {method, respond} from './util/expressUtil';
+import respond from './util/respond';
 import initSession from './auth/sessionMiddleware';
-import {printQueue, startQueue} from './util/printerUtil';
-import {read, unzip} from './util/fileSystemUtil';
+import {startQueue} from './util/printerUtil';
+import {read} from './util/fileSystemUtil';
+import queueRouter from './router/queueRouter';
+import authRouter from './router/authRouter';
 import createHttpError from 'http-errors';
+import {serve, setup} from 'swagger-ui-express';
+import swaggerConfig from '../swagger.json';
 import http, {Server} from 'http';
 import {json} from 'body-parser';
 import marked from 'marked';
@@ -49,9 +49,6 @@ import helmet from 'helmet';
 import https from 'https';
 import cors from 'cors';
 import env from './env';
-import rawBodyParser from './util/rawBodyParser';
-import {fromBuffer} from 'file-type';
-import {FileTypeResult} from 'file-type/core';
 
 // allow self signed/invalid SSL certifications when not in production
 if (env.isDevelopment) process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
@@ -75,63 +72,22 @@ if (env.isDevelopment) process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     })
   );
 
-  // initialize AD authorization
-  initAuthenticator(app);
-
   // readme page
   const readme: string = marked(await read('./README.md'));
-  app.all('/', method('GET'), (request: Request, response: Response) =>
-    response.send(readme)
-  );
+  app.all('/', (request: Request, response: Response, next: NextFunction) => {
+    if ('GET' !== request.method) next(createHttpError(405));
+    else response.send(readme);
+  });
 
-  // authentication
-  app.all(
-    '/auth',
-    method('POST'),
-    authenticate(),
-    (request: Request, response: Response) =>
-      respond(request, response, undefined, {user: request.user})
-  );
+  // serve swagger api docs
+  app.use('/docs', serve, setup(swaggerConfig));
 
-  // session status
-  app.all('/status', method('GET'), (request: Request, response: Response) =>
-    respond(request, response, undefined, {
-      isAuthenticated: request.isAuthenticated(),
-      user: request.user || null,
-    })
-  );
+  // setup authentication
+  initAuthenticator(app);
+  app.use('/auth', authRouter);
 
-  // add items to print queue
-  app.all(
-    '/print/label',
-    method('POST'),
-    requireAuthentication(),
-    rawBodyParser(),
-    async (request: Request, response: Response, next: NextFunction) => {
-      const type: FileTypeResult | undefined = await fromBuffer(request.body);
-      if (!type)
-        return next(createHttpError(400, 'Missing request body (binary).'));
-      switch (type.mime) {
-        case 'application/zip':
-          const items: Buffer[] = await unzip(request.body, 'image/png');
-          printQueue.push(...items);
-          respond(request, response, undefined, {
-            addedItems: items.length,
-            positionInQueue: 1 + printQueue.length - items.length,
-          });
-          break;
-        case 'image/png':
-          printQueue.push(request.body);
-          respond(request, response, undefined, {
-            addedItems: 1,
-            positionInQueue: 1 + printQueue.length,
-          });
-          break;
-        default:
-          return next(createHttpError(400, 'Unsupported file type.'));
-      }
-    }
-  );
+  // register queue router
+  app.use('/queue', requireAuthentication(), queueRouter);
 
   // handle 404
   app.use((request: Request, response: Response, next: NextFunction) =>
@@ -139,10 +95,12 @@ if (env.isDevelopment) process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
   );
 
   // error handler
+  /* eslint-disable */
   app.use(
     (error: Error, request: Request, response: Response, _next: NextFunction) =>
       respond(request, response, error)
   );
+  /* eslint-enable */
 
   // start printing queue
   await startQueue();
@@ -162,7 +120,6 @@ if (env.isDevelopment) process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
   server.once('listening', () => {
     gracefulShutdown(server, {
-      signals: 'SIGINT SIGTERM',
       timeout: 1000 * 10,
       development: env.isDevelopment,
       finally: () => console.log('Shut down webserver.'),

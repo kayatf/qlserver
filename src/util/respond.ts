@@ -29,18 +29,18 @@
  * SOFTWARE.
  */
 
-import {NextFunction, Request, RequestHandler, Response} from 'express';
+import {Request, Response} from 'express';
 import {json2html} from '@naturalcycles/json2html';
-import createHttpError, {HttpError} from 'http-errors';
+import {HttpError} from 'http-errors';
 
-export const respond = (
+export default (
   request: Request,
   response: Response,
   error?: HttpError | Error,
   data = {}
 ): void => {
   if (error) response.status(error instanceof HttpError ? error.status : 500);
-  const body: any = {
+  const body = {
     status: response.statusCode,
     error: {
       type: !error ? null : error.name || '',
@@ -50,23 +50,4 @@ export const respond = (
   };
   if ('application/json' === request.headers['accept']) response.json(body);
   else response.send(json2html(body));
-};
-
-type HttpMethod =
-  | 'GET'
-  | 'HEAD'
-  | 'POST'
-  | 'PUT'
-  | 'DELETE'
-  | 'CONNECT'
-  | 'OPTIONS'
-  | 'TRACE'
-  | 'PATCH';
-
-export const method = (method: HttpMethod): RequestHandler => (
-  request: Request,
-  response: Response,
-  next: NextFunction
-) => {
-  next(method !== request.method ? createHttpError(405) : undefined);
 };

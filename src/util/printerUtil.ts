@@ -38,6 +38,7 @@ import sharp from 'sharp';
 import env from '../env';
 
 // reference: https://pypi.org/project/brother-ql/
+/* eslint-disable */
 const LABELS: any = {
   '17x54': [165, 566],
   '17x87': [165, 956],
@@ -51,6 +52,7 @@ const LABELS: any = {
   '102x51': [1164, 526],
   '102x152': [1164, 1660],
 };
+/* eslint-enable */
 
 const discoverBrotherInterface = (): Promise<string> =>
   new Promise<string>((resolve, reject) =>
@@ -105,25 +107,30 @@ export const startQueue = async (): Promise<void> => {
   setInterval(async () => {
     // halt if already printing or queue is empty
     if (printing || printQueue.length === 0) return;
-    printing = true;
-    // resize image(s)
-    const image: PathLike = await tempWrite(
-      await sharp(printQueue.pop())
-        .resize({
-          fit: 'fill',
-          height: LABELS[env.LABEL_DIMENSIONS][0],
-          width: LABELS[env.LABEL_DIMENSIONS][1],
-        })
-        .toBuffer()
-    );
-    // send the instruction to the printer
-    await executeCommand(
-      `${brotherInterface} --printer ${await discoverPrinter(
-        brotherInterface
-      )} print --label ${env.LABEL_DIMENSIONS} ${image}`
-    );
-    // cleanup
-    await remove(image);
-    printing = false;
+    try {
+      printing = true;
+      // resize image(s)
+      const image: PathLike = await tempWrite(
+        await sharp(printQueue.pop())
+          .resize({
+            fit: 'fill',
+            height: LABELS[env.LABEL_DIMENSIONS][0],
+            width: LABELS[env.LABEL_DIMENSIONS][1],
+          })
+          .toBuffer()
+      );
+      // send the instruction to the printer
+      await executeCommand(
+        `${brotherInterface} --printer ${await discoverPrinter(
+          brotherInterface
+        )} print --label ${env.LABEL_DIMENSIONS} ${image}`
+      );
+      // cleanup
+      await remove(image);
+      printing = false;
+    } catch (error) {
+      printing = false;
+      console.warn(error);
+    }
   }, 1000);
 };
