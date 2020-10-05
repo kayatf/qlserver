@@ -1,26 +1,250 @@
 {
-  "swagger": "2.0",
+  "openapi": "3.0.0",
   "info": {
+    "version": "1.0.0",
     "title": "QLServer",
-    "description": "API description in Markdown.",
-    "version": "1.0.0"
+    "description": "LDAP authenticated microservice for Brother QL-series label printers.",
+    "license": {
+      "name": "Licensed under The MIT License",
+      "url": "https://opensource.org/licenses/MIT"
+    }
   },
-  "host": "127.0.0.1:1312",
-  "schemes": [
-    "http",
-    "https"
-  ],
   "paths": {
-    "/users": {
+    "/auth": {
       "get": {
-        "summary": "Returns a list of users.",
-        "description": "Optional extended description in Markdown.",
-        "produces": [
-          "application/json"
+        "summary": "Current auth session status",
+        "operationId": "authStatus",
+        "tags": [
+          "Authentication"
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Details about the current session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Response"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "properties": {
+                            "isAuthenticated": {
+                              "type": "boolean",
+                              "description": "Validity of the current session",
+                              "example": true
+                            },
+                            "user": {
+                              "$ref": "#/components/schemas/User"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "text/html": {
+                "schema": {
+                  "example": "<!-- Beautifully formatted version of application/json -->"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Authenticate to the API via LDAP credentials",
+        "operationId": "auth",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Credentials"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Response"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "properties": {
+                            "user": {
+                              "$ref": "#/components/schemas/User"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "text/html": {
+                "schema": {
+                  "example": "<!-- Beautifully formatted version of application/json -->"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid login credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Response"
+                    },
+                    {
+                      "properties": {
+                        "status": {
+                          "example": 401
+                        },
+                        "error": {
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "example": "AuthenticationError"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Unauthorized"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "text/html": {
+                "schema": {
+                  "example": "<!-- Beautifully formatted version of application/json -->"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "description": "Error thrown by the API",
+        "required": [
+          "type",
+          "message"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Type name of the error thrown",
+            "example": null
+          },
+          "message": {
+            "type": "string",
+            "description": "Detailed error message",
+            "example": null
+          }
+        }
+      },
+      "Credentials": {
+        "type": "object",
+        "description": "Credentials of a LDAP user",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "daniel.riegler",
+            "description": "Username to authenticate with"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "12345678",
+            "description": "Password to authenticate with"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "description": "LDAP server user object",
+        "required": [
+          "dn",
+          "controls",
+          "displayName",
+          "mail"
+        ],
+        "properties": {
+          "dn": {
+            "type": "string",
+            "description": "Distinguished names of the user object",
+            "example": "CN=Daniel Riegler,OU=IT,OU=users,DC=example,DC=com"
+          },
+          "controls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Control groups of the user",
+            "example": []
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Real name of the user",
+            "example": "Daniel Riegler"
+          },
+          "mail": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of the user",
+            "example": "daniel.riegler@essteyr.com"
+          }
+        }
+      },
+      "Response": {
+        "type": "object",
+        "description": "API response",
+        "required": [
+          "status",
+          "error",
+          "data"
+        ],
+        "properties": {
+          "status": {
+            "type": "integer",
+            "description": "Request HTTP status",
+            "minimum": 100,
+            "maximum": 511,
+            "example": 200
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "data": {
+            "type": "object",
+            "description": "Data returned by the API"
           }
         }
       }

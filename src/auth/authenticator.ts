@@ -75,7 +75,7 @@ export const requireAuthentication = (): RequestHandler => (
   next: NextFunction
 ) =>
   next(
-    env.isDevelopment || request.isAuthenticated
+    env.isDevelopment || request.isAuthenticated()
       ? undefined
       : createHttpError(401)
   );

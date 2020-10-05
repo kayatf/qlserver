@@ -34,23 +34,9 @@ import {FileTypeResult, fromBuffer} from 'file-type';
 import AdmZip, {IZipEntry} from 'adm-zip';
 import {join} from 'path';
 import {MimeType} from 'file-type/core';
-import getAppDataPath from 'appdata-path';
+import {cwd} from 'process';
 
-const appDataPath = getAppDataPath('.qlserver');
-
-const formatPath = (path: PathLike) => join(appDataPath, path.toString());
-
-// export const createAppDataEntry = (): Promise<void> =>
-//   new Promise<void>((resolve, reject) =>
-//     exists(appDataPath).then(exists => {
-//       if (exists) resolve();
-//       else
-//         mkdir(appDataPath, error => {
-//           if (error) reject(error);
-//           else resolve();
-//         });
-//     })
-//   );
+const formatPath = (path: PathLike) => join(cwd(), path.toString());
 
 export const unzip = (
   zipFile: Buffer,

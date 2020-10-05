@@ -108,6 +108,7 @@ export const startQueue = async (): Promise<void> => {
     // halt if already printing or queue is empty
     if (printing || printQueue.length === 0) return;
     try {
+      const printer: string = await discoverPrinter(brotherInterface);
       printing = true;
       // resize image(s)
       const image: PathLike = await tempWrite(
@@ -121,16 +122,14 @@ export const startQueue = async (): Promise<void> => {
       );
       // send the instruction to the printer
       await executeCommand(
-        `${brotherInterface} --printer ${await discoverPrinter(
-          brotherInterface
-        )} print --label ${env.LABEL_DIMENSIONS} ${image}`
+        `${brotherInterface} --printer ${printer} print --label ${env.LABEL_DIMENSIONS} ${image}`
       );
       // cleanup
       await remove(image);
       printing = false;
     } catch (error) {
       printing = false;
-      console.warn(error);
+      if (env.isDevelopment) console.warn(error);
     }
   }, 1000);
 };

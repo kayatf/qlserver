@@ -50,7 +50,12 @@ import cors from 'cors';
 import env from './env';
 
 // allow self signed/invalid SSL certifications when not in production
-if (env.isDevelopment) process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+/*if (env.isDevelopment)*/
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+
+const BASE_URL: string = `${env.ENCRYPT ? 'https' : 'http'}://${env.HOST}:${
+  env.PORT
+}`;
 
 (async () => {
   console.log(
@@ -79,7 +84,11 @@ if (env.isDevelopment) process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
   );
 
   // serve swagger api docs
-  app.use(serve, setup(swaggerConfig));
+  app.use(
+    '/docs',
+    serve,
+    setup({...swaggerConfig, servers: [{url: BASE_URL}]})
+  );
 
   // setup authentication
   initAuthenticator(app);
@@ -118,14 +127,11 @@ if (env.isDevelopment) process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     : http.createServer(app).listen(env.PORT, env.HOST);
 
   server.once('listening', () => {
-    console.log('Shutting down server...');
     gracefulShutdown(server, {
       timeout: 1000 * 10,
       development: env.isDevelopment,
       finally: () => console.log('Server shutdown complete.'),
     });
-    console.log(
-      `Listening on ${env.ENCRYPT ? 'https' : 'http'}://${env.HOST}:${env.PORT}`
-    );
+    console.log(BASE_URL);
   });
 })();

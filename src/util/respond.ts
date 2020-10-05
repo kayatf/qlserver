@@ -39,7 +39,7 @@ export default (
   error?: HttpError | Error,
   data = {}
 ): void => {
-  if (error) response.status(error instanceof HttpError ? error.status : 500);
+  if (error) response.status('status' in error ? error.status : 500);
   const body = {
     status: response.statusCode,
     error: {
