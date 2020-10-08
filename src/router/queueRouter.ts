@@ -41,13 +41,16 @@ import respond from '../util/respond';
 const router: Router = Router();
 
 router.get('/', (request: Request, response: Response) =>
-  respond(request, response, undefined, {items: printQueue.length})
+  respond(request, response, undefined, {itemsInQueue: printQueue.length})
 );
 
-router.purge('/', (request: Request, response: Response) => {
+router.delete('/', (request: Request, response: Response) => {
   const length: number = printQueue.length;
   printQueue.splice(0, length);
-  respond(request, response, undefined, {removedItems: length});
+  respond(request, response, undefined, {
+    removedItems: length,
+    itemsInQueue: printQueue.length,
+  });
 });
 
 router.post(
@@ -58,7 +61,10 @@ router.post(
     if (!type)
       return next(createHttpError(400, 'Missing request body (binary).'));
     const items: Buffer[] = [];
-    if ('application/zip' === type.mime) {
+    if (
+      'application/zip' === type.mime &&
+      'application/zip' === request.headers['content-type']
+    ) {
       const zipEntries: Buffer[] = await unzip(request.body);
       items.push(...zipEntries);
       if (0 === zipEntries.length)
@@ -68,12 +74,17 @@ router.post(
             'Could not extract image files from zip archive.'
           )
         );
-    } else if ('image/png' === type.mime) items.push(request.body);
+    } else if (
+      'image/png' === type.mime &&
+      'image/png' === request.headers['content-type']
+    )
+      items.push(request.body);
     else return next(createHttpError(400, 'Unsupported file format.'));
     printQueue.push(...items);
     respond(request, response, undefined, {
       addedItems: items.length,
       positionInQueue: 1 + printQueue.length - items.length,
+      itemsInQue: printQueue.length,
     });
   }
 );

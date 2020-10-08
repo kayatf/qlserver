@@ -37,7 +37,7 @@ import env from '../env';
 
 export default (): RequestHandler => (
   request: Request,
-  _response: Response,
+  response: Response,
   next: NextFunction
 ) =>
   getRawBody(

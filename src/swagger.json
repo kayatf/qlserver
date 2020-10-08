@@ -142,6 +142,174 @@
           }
         }
       }
+    },
+    "/queue": {
+      "get": {
+        "summary": "Information about the print queue",
+        "operationId": "getQueue",
+        "tags": [
+          "Queue"
+        ],
+        "responses": {
+          "200": {
+            "description": "Information about the print queue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Response"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "required": [
+                            "itemsInQueue"
+                          ],
+                          "properties": {
+                            "itemsInQueue": {
+                              "type": "number",
+                              "description": "Number of items in the queue",
+                              "example": 15
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "text/html": {
+                "schema": {
+                  "example": "<!-- Beautifully formatted version of application/json -->"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Adds items to the print queue",
+        "operationId": "addQueue",
+        "tags": [
+          "Queue"
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "PNG file or ZIP archive containing labels to print",
+          "content": {
+            "image/png": {
+              "schema": {
+                "type": "file"
+              }
+            },
+            "application/zip": {
+              "schema": {
+                "type": "file"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully added items to the queue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Response"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "required": [
+                            "addedItems",
+                            "positionInQueue",
+                            "itemsInQueue"
+                          ],
+                          "properties": {
+                            "addedItems": {
+                              "type": "number",
+                              "description": "Amount of items added to the queue",
+                              "example": 15
+                            },
+                            "positionInQueue": {
+                              "type": "number",
+                              "description": "Positions of the added items in the queue",
+                              "example": 8
+                            },
+                            "itemsInQueue": {
+                              "type": "number",
+                              "description": "Amount of items in the queue",
+                              "example": 23
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "text/html": {
+                "schema": {
+                  "example": "<!-- Beautifully formatted version of application/json -->"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Clears the print queue",
+        "operationId": "clearQueue",
+        "tags": [
+          "Queue"
+        ],
+        "responses": {
+          "200": {
+            "description": "Print queue cleared successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Response"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "required": [
+                            "removedItems",
+                            "itemsInQueue"
+                          ],
+                          "properties": {
+                            "removedItems": {
+                              "type": "number",
+                              "description": "Number of items removed from the queue",
+                              "example": 15
+                            },
+                            "itemsInQueue": {
+                              "type": "number",
+                              "description": "Number of items in the queue",
+                              "example": 0
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "text/html": {
+                "schema": {
+                  "example": "<!-- Beautifully formatted version of application/json -->"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

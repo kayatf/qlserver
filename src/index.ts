@@ -30,7 +30,7 @@
  */
 
 import express, {Express, NextFunction, Request, Response} from 'express';
-import {initAuthenticator, requireAuthentication} from './auth/authenticator';
+import {requireAuthentication} from './auth/authenticator';
 import gracefulShutdown from 'http-graceful-shutdown';
 import respond from './util/respond';
 import initSession from './auth/sessionMiddleware';
@@ -71,6 +71,7 @@ const BASE_URL: string = `${env.ENCRYPT ? 'https' : 'http'}://${env.HOST}:${
   const app: Express = express();
 
   // middleware
+  if (env.PROXY) app.set('trust proxy', 1);
   app.use(morgan(env.isProduction ? 'tiny' : 'dev'));
   app.use(helmet());
   app.use(json());
@@ -90,8 +91,12 @@ const BASE_URL: string = `${env.ENCRYPT ? 'https' : 'http'}://${env.HOST}:${
     setup({...swaggerConfig, servers: [{url: BASE_URL}]})
   );
 
-  // setup authentication
-  initAuthenticator(app);
+  // redirect root to docs
+  app.get('/', (request: Request, response: Response) =>
+    response.redirect(301, '/docs')
+  );
+
+  // register auth router
   app.use('/auth', authRouter);
 
   // register queue router
@@ -132,6 +137,6 @@ const BASE_URL: string = `${env.ENCRYPT ? 'https' : 'http'}://${env.HOST}:${
       development: env.isDevelopment,
       finally: () => console.log('Server shutdown complete.'),
     });
-    console.log(BASE_URL);
+    console.log(`Server listening on ${BASE_URL}`);
   });
 })();

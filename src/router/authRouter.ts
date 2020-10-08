@@ -31,8 +31,8 @@
 
 import {NextFunction, Request, Response, Router} from 'express';
 import respond from '../util/respond';
-import {authenticate} from '../auth/authenticator';
 import createHttpError from 'http-errors';
+import {authenticate} from '../auth/authenticator';
 
 const router: Router = Router();
 

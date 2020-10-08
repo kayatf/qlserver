@@ -53,8 +53,9 @@ const getSessionToken = (): Promise<string> =>
 export default async (): Promise<RequestHandler> =>
   session({
     secret: await getSessionToken(),
-    saveUninitialized: true,
-    resave: true,
+    saveUninitialized: false,
+    proxy: env.PROXY,
+    resave: false,
     cookie: {
       sameSite: env.isProduction ? 'strict' : 'lax',
       secure: env.ENCRYPT,
