@@ -23,9 +23,7 @@
   "license": "MIT",
   "dependencies": {
     "@naturalcycles/json2html": "^1.1.0",
-    "activedirectory2": "^2.1.0",
     "adm-zip": "^0.4.16",
-    "basic-auth": "^2.0.1",
     "body-parser": "^1.19.0",
     "content-type": "^1.0.4",
     "cookie-parser": "^1.4.5",
@@ -33,8 +31,6 @@
     "crypto-random-string": "^3.3.0",
     "envalid": "^6.0.2",
     "express": "^4.17.1",
-    "express-ad-basicauth": "^2.0.0",
-    "express-basic-auth": "^1.2.0",
     "express-session": "^1.17.1",
     "file-type": "^15.0.1",
     "helmet": "^4.1.1",
@@ -50,7 +46,6 @@
     "temp-write": "^4.0.0"
   },
   "devDependencies": {
-    "@types/activedirectory2": "^1.2.2",
     "@types/adm-zip": "^0.4.33",
     "@types/body-parser": "^1.19.0",
     "@types/content-type": "^1.1.3",
