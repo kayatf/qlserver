@@ -57,7 +57,7 @@ export default cleanEnv(process.env, {
   }),
   ENCRYPT_SECRET_LENGTH: num({
     default: 32,
-    desc: 'Length of the cryptographic used to encrypt sessions with',
+    desc: 'Length of the cryptographic key used to encrypt sessions with',
   }),
   CERTIFICATE: str({
     default: '',
