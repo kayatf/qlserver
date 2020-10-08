@@ -57,9 +57,6 @@ fi
 
 npm install --global pm2
 
-SCRIPT_FILE=$(mktemp /tmp/ecosystem.config.js.XXXXXXXX)
-curl $SCRIPT_URL >>"${SCRIPT_FILE}"
-
 read -p "User: " user
 read -p "Host: " host
 read -p "Key: " key
@@ -71,6 +68,9 @@ cat <<EOT >>deploy.json
   "key": "$key"
 }
 EOT
+
+SCRIPT_FILE=$(mktemp /tmp/ecosystem.config.js.XXXXXXXX)
+curl $SCRIPT_URL >>"${SCRIPT_FILE}"
 
 pm2 deploy $SCRIPT_FILE production setup
 pm2 deploy $SCRIPT_FILE production --force
