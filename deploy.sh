@@ -55,8 +55,6 @@ if [[ -z "$(command -v npm)" ]]; then
   fi
 fi
 
-npm install --global pm2
-
 read -p "User: " user
 read -p "Host: " host
 read -p "Key: " key
@@ -68,6 +66,8 @@ cat <<EOT >>deploy.json
   "key": "$key"
 }
 EOT
+
+sudo npm install --global pm2
 
 SCRIPT_FILE=$(mktemp /tmp/ecosystem.config.js.XXXXXXXX)
 curl $SCRIPT_URL >>"${SCRIPT_FILE}"
