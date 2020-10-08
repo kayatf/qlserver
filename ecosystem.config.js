@@ -2,6 +2,7 @@ module.exports = {
   apps: [
     {
       script: 'build/src/bundle.js',
+      name: 'qlserver',
     },
   ],
   deploy: {
