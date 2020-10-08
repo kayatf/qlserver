@@ -66,9 +66,9 @@ read -p "Key: " key
 
 cat <<EOT >>deploy.json
 {
-  "user": $user,
-  "host:" $host,
-  "key": $key
+  "user": "$user",
+  "host:" "$host",
+  "key": "$key"
 }
 EOT
 
