@@ -55,25 +55,22 @@ if [[ -z "$(command -v npm)" ]]; then
   fi
 fi
 
-read -p "User: " user
-read -p "Host: " host
-read -p "Key: " key
-
-cat <<EOT >>deploy.json
-{
-  "user": "$user",
-  "host:" "$host",
-  "key": "$key"
-}
-EOT
-
 sudo npm install --global pm2
+
+read -rp "User: " user
+export user
+
+read -rp "Host: " host
+export host
+
+read -rp "Key: " key
+export key
 
 SCRIPT_FILE=$(mktemp /tmp/ecosystem.config.js.XXXXXXXX)
 curl $SCRIPT_URL >>"${SCRIPT_FILE}"
 
-pm2 deploy $SCRIPT_FILE production setup
-pm2 deploy $SCRIPT_FILE production --force
+pm2 deploy "$SCRIPT_FILE" production setup
+pm2 deploy "$SCRIPT_FILE" production --force
 
-rm $SCRIPT_FILE
+rm "$SCRIPT_FILE"
 rm deploy.json

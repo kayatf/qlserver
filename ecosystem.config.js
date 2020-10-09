@@ -7,10 +7,12 @@ module.exports = {
   ],
   deploy: {
     production: {
-      ...require('./deploy.json'),
+      host: process.env.HOST,
+      user: process.env.USER,
+      key: process.env.KEY,
       ref: 'origin/master',
       repo: 'https://github.com/rescaux/qlserver.git',
-      path: '/srv/qlserver',
+      path: process.env.PATH || '/srv/qlserver',
       'pre-setup':
         'apt-get -y install nodejs git python3 python3-pip && npm install --global npm pm2 && python3 -m pip install --upgrade pip brother_ql',
       'post-deploy':

