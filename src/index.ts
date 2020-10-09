@@ -30,7 +30,7 @@
  */
 
 import express, {Express, NextFunction, Request, Response} from 'express';
-import {requireAuthentication} from './auth/authenticator';
+import {initAuthenticator, requireAuthentication} from './auth/authenticator';
 import gracefulShutdown from 'http-graceful-shutdown';
 import respond from './util/respond';
 import initSession from './auth/sessionMiddleware';
@@ -97,6 +97,7 @@ const BASE_URL: string = `${env.ENCRYPT ? 'https' : 'http'}://${env.HOST}:${
   );
 
   // register auth router
+  initAuthenticator(app);
   app.use('/auth', authRouter);
 
   // register queue router

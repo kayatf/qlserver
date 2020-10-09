@@ -61,11 +61,8 @@ router.post(
     if (!type)
       return next(createHttpError(400, 'Missing request body (binary).'));
     const items: Buffer[] = [];
-    if (
-      'application/zip' === type.mime &&
-      'application/zip' === request.headers['content-type']
-    ) {
-      const zipEntries: Buffer[] = await unzip(request.body);
+    if ('application/zip' === type.mime) {
+      const zipEntries: Buffer[] = await unzip(request.body, 'image/png');
       items.push(...zipEntries);
       if (0 === zipEntries.length)
         return next(
@@ -74,17 +71,13 @@ router.post(
             'Could not extract image files from zip archive.'
           )
         );
-    } else if (
-      'image/png' === type.mime &&
-      'image/png' === request.headers['content-type']
-    )
-      items.push(request.body);
+    } else if ('image/png' === type.mime) items.push(request.body);
     else return next(createHttpError(400, 'Unsupported file format.'));
     printQueue.push(...items);
     respond(request, response, undefined, {
       addedItems: items.length,
       positionInQueue: 1 + printQueue.length - items.length,
-      itemsInQue: printQueue.length,
+      itemsInQueue: printQueue.length,
     });
   }
 );
