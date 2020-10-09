@@ -31,20 +31,6 @@
 
 SCRIPT_URL="https://raw.githubusercontent.com/rescaux/qlserver/master/ecosystem.config.js"
 
-if [ "$EUID" -ne 0 ]; then
-  echo "Please run with elevated privileges."
-  exit 1
-fi
-
-if [[ -z "$(command -v curl)" ]]; then
-  read -p "CURL is not found, do you want to install it now?" -n 1 -r
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    sudo apt -y install curl
-  else
-    exit 1
-  fi
-fi
-
 if [[ -z "$(command -v npm)" ]]; then
   read -p "NodeJs is not found, do you want to install it now?" -n 1 -r
   if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -73,4 +59,3 @@ pm2 deploy "$SCRIPT_FILE" production setup
 pm2 deploy "$SCRIPT_FILE" production --force
 
 rm "$SCRIPT_FILE"
-rm deploy.json
