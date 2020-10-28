@@ -30,6 +30,7 @@
  */
 
 import {remove} from './fileSystemUtil';
+import {platform, stdout} from 'process';
 import tempWrite from 'temp-write';
 import {exec} from 'child_process';
 import {lookpath} from 'lookpath';
@@ -72,7 +73,7 @@ const executeCommand = (command: string): Promise<string> =>
       {
         env: {
           PYTHONIOENCODING: 'UTF-8',
-          BROTHER_QL_BACKEND: 'pyusb',
+          BROTHER_QL_BACKEND: 'linux' === platform ? 'linux_kernel' : 'pyusb',
           BROTHER_QL_MODEL: env.PRINTER,
         },
       },
@@ -99,7 +100,7 @@ export const printQueue = new Array<Buffer>();
 export const startQueue = async (): Promise<void> => {
   // discover brother_ql cli
   const brotherInterface: string = await discoverBrotherInterface();
-  process.stdout.write(
+  stdout.write(
     `Using ${await executeCommand(`${brotherInterface} --version`)}`
   );
   // run queue
