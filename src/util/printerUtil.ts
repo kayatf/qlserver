@@ -90,7 +90,8 @@ const discoverPrinter = (brotherInterface: string): Promise<string> =>
       .then(stdout => {
         let address: string = stdout.split(/\r?\n/).reverse()[1];
         if (address.includes('_')) address = address.split('_')[0];
-        if (address.startsWith('usb://')) resolve(address);
+        if (address.startsWith('usb://') || address.startsWith('file://'))
+          resolve(address);
         else reject(new Error('Could not find attached printer.'));
       })
       .catch(reject);
