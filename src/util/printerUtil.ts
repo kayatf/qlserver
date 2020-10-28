@@ -30,7 +30,7 @@
  */
 
 import {remove} from './fileSystemUtil';
-import {platform, stdout} from 'process';
+import {stdout} from 'process';
 import tempWrite from 'temp-write';
 import {exec} from 'child_process';
 import {lookpath} from 'lookpath';
@@ -73,7 +73,7 @@ const executeCommand = (command: string): Promise<string> =>
       {
         env: {
           PYTHONIOENCODING: 'UTF-8',
-          BROTHER_QL_BACKEND: 'linux' === platform ? 'linux_kernel' : 'pyusb',
+          BROTHER_QL_BACKEND: 'pyusb',
           BROTHER_QL_MODEL: env.PRINTER,
         },
       },
@@ -90,7 +90,7 @@ const discoverPrinter = (brotherInterface: string): Promise<string> =>
       .then(stdout => {
         let address: string = stdout.split(/\r?\n/).reverse()[1];
         if (address.includes('_')) address = address.split('_')[0];
-        if (address.startsWith('usb://') || address.startsWith('file://'))
+        if (address.startsWith('usb://') || address.startsWith('file:///'))
           resolve(address);
         else reject(new Error('Could not find attached printer.'));
       })
