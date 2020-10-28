@@ -6,15 +6,16 @@
   "bin": "build/src/bundle.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "cross-env NODE_ENV=production node .",
+    "start": "npm run daemon:start",
+    "daemon:start": "forever start --minUptime 1000ms --spinSleepTime 1000ms --append --uid qlserver bundle/index.js",
+    "daemon:stop": "forever stop qlserver",
     "dev": "tsc-watch --onSuccess \"cross-env NODE_ENV=development node .\"",
-    "clean": "gts clean",
-    "compile": "npm run clean && tsc && ncc build build/src/bundle.js --minify --license LICENSE --out bundle/",
-    "package": "npm run compile && pkg --targets node12 --out-path bin/ package.json",
+    "bundle": "npm run clean && tsc && ncc build build/src/bundle.js --minify --license LICENSE --out bundle/",
     "pretest": "npm run compile",
     "posttest": "npm run check",
-    "fix": "gts fix",
-    "check": "gts check"
+    "clean": "gts clean",
+    "check": "gts check",
+    "fix": "gts fix"
   },
   "keywords": [],
   "author": "Riegler Daniel",
@@ -30,6 +31,7 @@
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "file-type": "^15.0.1",
+    "forever": "^3.0.2",
     "helmet": "^4.1.1",
     "http-errors": "^1.8.0",
     "http-graceful-shutdown": "^2.3.2",
@@ -59,9 +61,7 @@
     "@types/sharp": "^0.26.0",
     "@types/swagger-ui-express": "^4.1.2",
     "@vercel/ncc": "^0.24.1",
-    "cross-env": "^7.0.2",
     "gts": "^2.0.2",
-    "pkg": "^4.4.9",
     "tsc-watch": "^4.2.9",
     "typescript": "^3.8.3"
   }
