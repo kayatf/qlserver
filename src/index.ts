@@ -88,7 +88,11 @@ const BASE_URL: string = `${env.ENCRYPT ? 'https' : 'http'}://${env.HOST}:${
   app.use(
     '/docs',
     serve,
-    setup({...swaggerConfig, servers: [{url: BASE_URL}]})
+    setup({
+      ...swaggerConfig,
+      swaggerUrl: BASE_URL,
+      servers: [{url: BASE_URL}],
+    })
   );
 
   // redirect root to docs
@@ -138,7 +142,6 @@ const BASE_URL: string = `${env.ENCRYPT ? 'https' : 'http'}://${env.HOST}:${
       development: env.isDevelopment,
       finally: () => console.log('Server shutdown complete.'),
     });
-    if (process.send) process.send('online');
     console.log(`Server listening on ${BASE_URL}`);
   });
 })();
