@@ -14,25 +14,25 @@
 ## Install
 
 - Install [brother_ql](https://pypi.org/project/brother-ql/) driver: 
-<br/>
-`python -m pip install --upgrade pip brother_ql`
+
+    `python -m pip install --upgrade pip brother_ql`
 - Clone or [download](https://github.com/rescaux/qlserver/archive/master.zip) the repository:
-<br/>
-`git clone https://github.com/rescaux/qlserver qlserver/`
+
+    `git clone https://github.com/rescaux/qlserver qlserver/`
 - Change directory: 
-<br/>
-`cd qlserver/`
+    
+    `cd qlserver/`
 - Create and edit [configuration](https://github.com/rescaux/qlserver/blob/master/.example.env):
-<br/>
-`cp .example.env .env`
-<br/>
-`nano .env` (Save with CTRL + X + Y + ENTER)
+
+    - `cp .example.env .env`
+    
+    - `nano .env` (Save with CTRL + X + Y + ENTER)
 - Install dependencies
-<br/>
-`npm install`
+
+    `npm install`
 - Compile sources
-<br />
-`npm run bundle`
+
+    `npm run bundle`
 
 ## Execute
 
