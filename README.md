@@ -11,10 +11,6 @@
 - [NodeJs](https://nodejs.org/download/) (12+ recommended)
 - [Python 3](https://www.python.org/downloads/) (3.2+ recommended)
 
-## Deploy to Linux server
-
-`curl -sL https://git.io/JUjsg | bash`
-
 ## Install
 
 - Install [brother_ql](https://pypi.org/project/brother-ql/) driver: 
@@ -34,15 +30,18 @@
 - Install dependencies
 <br/>
 `npm install`
+- Compile sources
+<br />
+`npm run bundle`
 
-## Run (not recommended)
+## Execute
 
 ```sh
-# Run in project directory
-npm start
+# Run
+npm run daemon:start
 
-# Build executable (output: bin/)
-npm run package
+# Stop
+npm run daemon:stop
 ```
 
 ## Author
@@ -54,8 +53,8 @@ npm run package
 
 ## License
 
-Copyright © 2020 [Riegler Daniel](https://github.com/rescaux).
+Copyright © 2020 [Riegler Daniel](https://github.com/rescaux)
 
-This project is [MIT](https://opensource.org/licenses/MIT) licensed.
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT)
 
 ***
