@@ -1,6 +1,5 @@
 .env
 .token
-deploy.json
 
 /node_modules/
 /bundle/
