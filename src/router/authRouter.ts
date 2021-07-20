@@ -37,18 +37,18 @@ import {authenticate} from '../auth/authenticator';
 const router: Router = Router();
 
 router.get('/', (request: Request, response: Response) =>
-  respond(request, response, undefined, {
-    isAuthenticated: request.isAuthenticated(),
-    user: request.user || null,
-  })
+    respond(request, response, undefined, {
+      isAuthenticated: request.isAuthenticated(),
+      user: request.user || null,
+    })
 );
 
 router.post('/', authenticate(), (request: Request, response: Response) =>
-  respond(request, response, undefined, {user: request.user})
+    respond(request, response, undefined, {user: request.user})
 );
 
 router.all('/', (request: Request, response: Response, next: NextFunction) =>
-  next(createHttpError(405))
+    next(createHttpError(405))
 );
 
 export default router;

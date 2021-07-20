@@ -48,18 +48,15 @@ import helmet from 'helmet';
 import https from 'https';
 import cors from 'cors';
 import env from './env';
+import path from "path";
 
 // allow self signed/invalid SSL certifications when not in production
 /*if (env.isDevelopment)*/
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
-const BASE_URL: string = `${env.ENCRYPT ? 'https' : 'http'}://${env.HOST}:${
-  env.PORT
-}`;
-
 (async () => {
   console.log(
-    '    ________________ __\n' +
+      '    ________________ __\n' +
       '   / ____/ ___/ ___// /____  __  _______\n' +
       '  / __/  \\__ \\\\__ \\/ __/ _ \\/ / / / ___/\n' +
       ' / /___ ___/ /__/ / /_/  __/ /_/ / /\n' +
@@ -77,27 +74,30 @@ const BASE_URL: string = `${env.ENCRYPT ? 'https' : 'http'}://${env.HOST}:${
   app.use(json());
   app.use(await initSession());
   app.use(
-    cors({
-      origin: true,
-      credentials: true,
-      exposedHeaders: ['set-cookie'],
-    })
+      cors({
+        origin: true,
+        credentials: true,
+        exposedHeaders: ['set-cookie'],
+      })
   );
+
+  // Serve webinterface; todo authentication
+  app.use('/editor', express.static(path.join(__dirname, 'public')));
 
   // serve swagger api docs
   app.use(
-    '/docs',
-    serve,
-    setup({
-      ...swaggerConfig,
-      swaggerUrl: BASE_URL,
-      servers: [{url: BASE_URL}],
-    })
+      '/docs',
+      serve,
+      setup({
+        ...swaggerConfig,
+        swaggerUrl: env.BASE_URL,
+        servers: [{url: env.BASE_URL}],
+      })
   );
 
   // redirect root to docs
   app.get('/', (request: Request, response: Response) =>
-    response.redirect(301, '/docs')
+      response.redirect(301, '/docs')
   );
 
   // register auth router
@@ -109,14 +109,14 @@ const BASE_URL: string = `${env.ENCRYPT ? 'https' : 'http'}://${env.HOST}:${
 
   // handle 404
   app.use((request: Request, response: Response, next: NextFunction) =>
-    next(createHttpError(404))
+      next(createHttpError(404))
   );
 
   // error handler
   /* eslint-disable */
   app.use(
-    (error: Error, request: Request, response: Response, _next: NextFunction) =>
-      respond(request, response, error)
+      (error: Error, request: Request, response: Response, _next: NextFunction) =>
+          respond(request, response, error)
   );
   /* eslint-enable */
 
@@ -125,16 +125,16 @@ const BASE_URL: string = `${env.ENCRYPT ? 'https' : 'http'}://${env.HOST}:${
 
   // webserver setup
   const server: Server = env.ENCRYPT
-    ? https
-        .createServer(
+      ? https
+      .createServer(
           {
             cert: await read(env.CERTIFICATE),
             key: await read(env.PRIVATE_KEY),
           },
           app
-        )
-        .listen(env.PORT, env.HOST)
-    : http.createServer(app).listen(env.PORT, env.HOST);
+      )
+      .listen(env.PORT, env.HOST)
+      : http.createServer(app).listen(env.PORT, env.HOST);
 
   server.once('listening', () => {
     gracefulShutdown(server, {
@@ -142,6 +142,6 @@ const BASE_URL: string = `${env.ENCRYPT ? 'https' : 'http'}://${env.HOST}:${
       development: env.isDevelopment,
       finally: () => console.log('Server shutdown complete.'),
     });
-    console.log(`Server listening on ${BASE_URL}`);
+    console.log(`Server listening on ${env.BASE_URL}`);
   });
 })();

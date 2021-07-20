@@ -29,53 +29,47 @@
  * SOFTWARE.
  */
 
-import {
-  Express,
-  NextFunction,
-  Request,
-  RequestHandler,
-  Response,
-} from 'express';
+import {Express, NextFunction, Request, RequestHandler, Response,} from 'express';
 import env from '../env';
 import passport from 'passport';
 import LdapStrategy from 'passport-ldapauth';
 import createHttpError from 'http-errors';
 
 export const initAuthenticator = (app: Express): void => {
-  passport.serializeUser((user, done) => done(null, user));
-  passport.deserializeUser((user, done) => done(null, user));
+  passport.serializeUser((user: Express.User, done) => done(null, user));
+  passport.deserializeUser((user: Express.User, done) => done(null, user));
 
   app.use(passport.initialize());
   app.use(passport.session());
 
   passport.use(
-    new LdapStrategy(
-      {
-        server: {
-          url: env.LDAP_URL,
-          bindDN: env.LDAP_BIND_DN,
-          bindCredentials: env.LDAP_BIND_CREDENTIAL,
-          searchBase: env.LDAP_SEARCH_BASE,
-          searchFilter: env.LDAP_SEARCH_FILTER,
-          searchAttributes: env.LDAP_SEARCH_ATTRIBUTES.split(','),
-        },
-      },
-      (user: unknown, done: (error: unknown, user: unknown) => void) =>
-        done(null, user)
-    )
+      new LdapStrategy(
+          {
+            server: {
+              url: env.LDAP_URL,
+              bindDN: env.LDAP_BIND_DN,
+              bindCredentials: env.LDAP_BIND_CREDENTIAL,
+              searchBase: env.LDAP_SEARCH_BASE,
+              searchFilter: env.LDAP_SEARCH_FILTER,
+              searchAttributes: env.LDAP_SEARCH_ATTRIBUTES.split(','),
+            },
+          },
+          (user: unknown, done: (error: unknown, user: unknown) => void) =>
+              done(null, user)
+      )
   );
 };
 
 export const authenticate = (): RequestHandler =>
-  passport.authenticate('ldapauth', {failWithError: true});
+    passport.authenticate('ldapauth', {failWithError: true});
 
 export const requireAuthentication = (): RequestHandler => (
-  request: Request,
-  _response: Response,
-  next: NextFunction
+    request: Request,
+    _response: Response,
+    next: NextFunction
 ) =>
-  next(
-    env.isDevelopment || request.isAuthenticated()
-      ? undefined
-      : createHttpError(401)
-  );
+    next(
+        env.isDevelopment || request.isAuthenticated()
+            ? undefined
+            : createHttpError(401)
+    );

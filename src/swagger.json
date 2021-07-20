@@ -197,6 +197,7 @@
         "requestBody": {
           "required": true,
           "description": "PNG file or ZIP archive containing labels to print",
+          "$ref": "#/components/schemas/Response",
           "content": {
             "image/png": {
               "schema": {

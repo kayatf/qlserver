@@ -56,37 +56,37 @@ const LABELS: any = {
 /* eslint-enable */
 
 const discoverBrotherInterface = (): Promise<string> =>
-  new Promise<string>((resolve, reject) =>
-    lookpath('brother_ql').then(path => {
-      if (!path)
-        return reject(
-          new Error('Could not find brother_ql executable in PATH.')
-        );
-      resolve(path);
-    })
-  );
+    new Promise<string>((resolve, reject) =>
+        lookpath('brother_ql').then(path => {
+          if (!path)
+            return reject(
+                new Error('Could not find brother_ql executable in PATH.')
+            );
+          resolve(path);
+        })
+    );
 
 const executeCommand = (command: string): Promise<string> =>
-  new Promise((resolve, reject) =>
-    exec(
-      command,
-      {
-        env: {
-          PYTHONIOENCODING: 'UTF-8',
-          BROTHER_QL_BACKEND: 'pyusb',
-          BROTHER_QL_MODEL: env.PRINTER,
-        },
-      },
-      (error, stdout: string) => {
-        if (error) reject(error);
-        else resolve(stdout);
-      }
-    )
-  );
+    new Promise((resolve, reject) =>
+        exec(
+            command,
+            {
+              env: {
+                PYTHONIOENCODING: 'UTF-8',
+                BROTHER_QL_BACKEND: 'pyusb',
+                BROTHER_QL_MODEL: env.PRINTER,
+              },
+            },
+            (error, stdout: string) => {
+              if (error) reject(error);
+              else resolve(stdout);
+            }
+        )
+    );
 
 const discoverPrinter = (brotherInterface: string): Promise<string> =>
-  new Promise<string>((resolve, reject) => {
-    executeCommand(`${brotherInterface} discover`)
+    new Promise<string>((resolve, reject) => {
+      executeCommand(`${brotherInterface} discover`)
       .then(stdout => {
         let address: string = stdout.split(/\r?\n/).reverse()[1];
         if (address.includes('_')) address = address.split('_')[0];
@@ -95,14 +95,14 @@ const discoverPrinter = (brotherInterface: string): Promise<string> =>
         else reject(new Error('Could not find attached printer.'));
       })
       .catch(reject);
-  });
+    });
 
 export const printQueue = new Array<Buffer>();
 export const startQueue = async (): Promise<void> => {
   // discover brother_ql cli
   const brotherInterface: string = await discoverBrotherInterface();
   stdout.write(
-    `Using ${await executeCommand(`${brotherInterface} --version`)}`
+      `Using ${await executeCommand(`${brotherInterface} --version`)}`
   );
   // run queue
   let printing = false;
@@ -114,7 +114,7 @@ export const startQueue = async (): Promise<void> => {
       printing = true;
       // resize image(s)
       const image: PathLike = await tempWrite(
-        await sharp(printQueue.pop())
+          await sharp(printQueue.pop())
           .resize({
             fit: 'fill',
             height: LABELS[env.LABEL_DIMENSIONS][0],
@@ -124,7 +124,7 @@ export const startQueue = async (): Promise<void> => {
       );
       // send the instruction to the printer
       await executeCommand(
-        `${brotherInterface} --printer ${printer} print --label ${env.LABEL_DIMENSIONS} ${image}`
+          `${brotherInterface} --printer ${printer} print --label ${env.LABEL_DIMENSIONS} ${image}`
       );
       // cleanup
       await remove(image);

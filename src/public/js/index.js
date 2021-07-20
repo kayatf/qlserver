@@ -29,27 +29,15 @@
  * SOFTWARE.
  */
 
-import {NextFunction, Request, RequestHandler, Response} from 'express';
-import createHttpError from 'http-errors';
-import {parse} from 'content-type';
-import getRawBody from 'raw-body';
-import env from '../env';
-
-export default (): RequestHandler => (
-    request: Request,
-    response: Response,
-    next: NextFunction
-) =>
-    getRawBody(
-        request,
-        {
-          length: request.headers['content-length'],
-          encoding: parse(request).parameters.charset,
-          limit: `${env.POST_MAX_SIZE}mb`,
-        },
-        (error: Error, buffer: Buffer) => {
-          if (error) return next(createHttpError(400, error));
-          request.body = buffer;
-          next();
-        }
-    );
+let canvasDesigner;
+$(document).ready(() => {
+  // Todo: change label size
+  canvasDesigner = new com.logicpartners.labelDesigner('labelDesigner', 3.54,
+      1.14);
+  canvasDesigner.labelInspector.addTool(
+      new com.logicpartners.labelControl.size(canvasDesigner));
+  canvasDesigner.labelInspector.addTool(
+      new com.logicpartners.labelControl.print(canvasDesigner));
+  canvasDesigner.toolbar.addTool(new com.logicpartners.designerTools.text());
+  canvasDesigner.toolbar.addTool(new com.logicpartners.designerTools.image());
+});

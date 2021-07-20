@@ -36,28 +36,28 @@ import session from 'express-session';
 import env from '../env';
 
 const getSessionToken = (): Promise<string> =>
-  new Promise(resolve => {
-    exists('.token').then(exists => {
-      if (exists) read('.token').then(resolve);
-      else
-        write(
-          '.token',
-          cryptoRandomString({
-            length: env.ENCRYPT_SECRET_LENGTH,
-            type: 'ascii-printable',
-          })
-        ).then(resolve);
+    new Promise(resolve => {
+      exists('.token').then(exists => {
+        if (exists) read('.token').then(resolve);
+        else
+          write(
+              '.token',
+              cryptoRandomString({
+                length: env.ENCRYPT_SECRET_LENGTH,
+                type: 'ascii-printable',
+              })
+          ).then(resolve);
+      });
     });
-  });
 
 export default async (): Promise<RequestHandler> =>
-  session({
-    secret: await getSessionToken(),
-    saveUninitialized: false,
-    proxy: env.PROXY,
-    resave: false,
-    cookie: {
-      sameSite: env.isProduction ? 'strict' : 'lax',
-      secure: env.ENCRYPT,
-    },
-  });
+    session({
+      secret: await getSessionToken(),
+      saveUninitialized: false,
+      proxy: env.PROXY,
+      resave: false,
+      cookie: {
+        sameSite: env.isProduction ? 'strict' : 'lax',
+        secure: env.ENCRYPT,
+      },
+    });

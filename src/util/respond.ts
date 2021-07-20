@@ -34,10 +34,10 @@ import {json2html} from '@naturalcycles/json2html';
 import {HttpError} from 'http-errors';
 
 export default (
-  request: Request,
-  response: Response,
-  error?: HttpError | Error,
-  data = {}
+    request: Request,
+    response: Response,
+    error?: HttpError | Error,
+    data = {}
 ): void => {
   if (error) response.status('status' in error ? error.status : 500);
   const body = {

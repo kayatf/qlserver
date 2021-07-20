@@ -32,6 +32,11 @@
 import {bool, cleanEnv, host, num, port, str, url} from 'envalid';
 
 export default cleanEnv(process.env, {
+  BASE_URL: str({
+    default: 'http://127.0.0.1',
+    example: 'https://test.com',
+    desc: 'Base URL of the server'
+  }),
   HOST: host({
     default: '127.0.0.1',
     example: '192.168.0.2',
@@ -45,7 +50,7 @@ export default cleanEnv(process.env, {
   PROXY: bool({
     default: false,
     desc:
-      "Enable this option if you're running the app. behind a reverse proxy",
+        "Enable this option if you're running the app. behind a reverse proxy",
   }),
   POST_MAX_SIZE: num({
     default: 3,
