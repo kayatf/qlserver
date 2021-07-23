@@ -32,7 +32,7 @@
 let canvasDesigner;
 $(document).ready(() => $.ajax({
   type: 'GET',
-  dataType: 'json',
+  accept: 'application/json',
   url: '/info/labelDimensions',
   error: (jqXHR, textStatus, errorThrown) => {
     if (confirm(`Error: ${errorThrown}`)) {
