@@ -36,7 +36,7 @@ import env from '../env';
 
 const router: Router = Router();
 
-router.get('labelDimensions', (request: Request, response: Response) => {
+router.get('/labelDimensions', (request: Request, response: Response) => {
   const height: number = LABELS[env.LABEL_DIMENSIONS][0];
   const width: number = LABELS[env.LABEL_DIMENSIONS][1];
   respond(request, response, undefined, {

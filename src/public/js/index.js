@@ -34,7 +34,11 @@ $(document).ready(() => $.ajax({
   type: 'GET',
   dataType: 'json',
   url: '/info/labelDimensions',
-  error: (jqXHR, textStatus, errorThrown) => alert(`Error: ${errorThrown}`),
+  error: (jqXHR, textStatus, errorThrown) => {
+    if (confirm(`Error: ${errorThrown}`)) {
+      window.location.reload();
+    }
+  },
   complete: data => {
     const width = data.data.inches.width;
     const height = data.data.inches.height;
