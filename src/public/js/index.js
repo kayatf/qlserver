@@ -41,7 +41,7 @@ $(document).ready(() => $.ajax({
   },
   complete: data => {
     const width = $.parseJSON(data).data.inches.width;
-    const height = $.parseJSON(data).body.data.inches.height;
+    const height = $.parseJSON(data).data.inches.height;
     canvasDesigner = new com.logicpartners.labelDesigner('labelDesigner',
         width, height);
     canvasDesigner.labelInspector.addTool(
