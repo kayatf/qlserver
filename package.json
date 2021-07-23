@@ -6,7 +6,7 @@
   "scripts": {
     "start": "cross-env NODE_ENV=production node .",
     "start:dev": "cross-env NODE_ENV=development node .",
-    "copy-files": "copyfiles src/public/**/* build/src/",
+    "copy-files": "copyfiles src/public/ build/src/",
     "watch": "tsc-watch --onSuccess \"run-s copy-files start:dev\"",
     "build": "npm run clean && tsc && npm run copy-files",
     "clean": "gts clean",
