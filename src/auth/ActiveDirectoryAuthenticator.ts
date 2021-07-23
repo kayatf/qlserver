@@ -51,7 +51,8 @@ export default class ActiveDirectoryAuthenticator {
       challenge: true,
       authorizeAsync: true,
       authorizer: (username: string, password: string, callback: AsyncAuthorizerCallback) =>
-          this.activeDirectory.authenticate(username, password, callback)
+          this.activeDirectory.authenticate(username, password,
+              (error: string, authed: boolean) => callback(undefined, error ? false : authed))
     });
   }
 
