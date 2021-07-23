@@ -40,9 +40,8 @@ $(document).ready(() => $.ajax({
     }
   },
   complete: data => {
-    console.log(data);
-    /*const width = data.data.inches.width;
-    const height = data.data.inches.height;
+    const width = data.body.data.inches.width;
+    const height = data.body.data.inches.height;
     canvasDesigner = new com.logicpartners.labelDesigner('labelDesigner',
         width, height);
     canvasDesigner.labelInspector.addTool(
@@ -52,6 +51,6 @@ $(document).ready(() => $.ajax({
     canvasDesigner.toolbar.addTool(
         new com.logicpartners.designerTools.text());
     canvasDesigner.toolbar.addTool(
-        new com.logicpartners.designerTools.image());*/
+        new com.logicpartners.designerTools.image());
   }
 }));
