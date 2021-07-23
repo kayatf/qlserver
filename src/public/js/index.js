@@ -40,8 +40,8 @@ $(document).ready(() => $.ajax({
     }
   },
   complete: data => {
-    const width = data.body.data.inches.width;
-    const height = data.body.data.inches.height;
+    const width = $.parseJSON(data).data.inches.width;
+    const height = $.parseJSON(data).body.data.inches.height;
     canvasDesigner = new com.logicpartners.labelDesigner('labelDesigner',
         width, height);
     canvasDesigner.labelInspector.addTool(
