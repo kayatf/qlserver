@@ -29,6 +29,7 @@
  * SOFTWARE.
  */
 
+import ActiveDirectoryAuthenticator from './auth/ActiveDirectoryAuthenticator';
 import express, {Express, NextFunction, Request, Response} from 'express';
 import gracefulShutdown from 'http-graceful-shutdown';
 import respond from './util/respond';
@@ -42,11 +43,10 @@ import http, {Server} from 'http';
 import {json} from 'body-parser';
 import morgan from 'morgan';
 import helmet from 'helmet';
+import {join} from 'path';
 import https from 'https';
 import cors from 'cors';
 import env from './env';
-import {join} from "path";
-import ActiveDirectoryAuthenticator from './auth/ActiveDirectoryAuthenticator';
 
 (async () => {
   console.log(
@@ -66,13 +66,7 @@ import ActiveDirectoryAuthenticator from './auth/ActiveDirectoryAuthenticator';
   app.use(morgan(env.isProduction ? 'tiny' : 'dev'));
   app.use(helmet());
   app.use(json());
-  app.use(
-      cors({
-        origin: true,
-        credentials: true,
-        exposedHeaders: ['set-cookie'],
-      })
-  );
+  app.use(cors());
 
   // serve swagger api docs
   app.use(
@@ -96,10 +90,10 @@ import ActiveDirectoryAuthenticator from './auth/ActiveDirectoryAuthenticator';
   // register queue router
   app.use('/queue', authenticator.getBasicAuth(), queueRouter);
 
-  // Serve webinterface; todo authentication
+  // Serve webinterface
   app.use('/editor', authenticator.getBasicAuth(), express.static(join(__dirname, 'public')));
 
-  // redirect root to docs
+  // redirect root to editor
   app.get('/', (request: Request, response: Response) =>
       response.redirect(301, '/editor')
   );
