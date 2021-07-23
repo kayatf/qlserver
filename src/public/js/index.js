@@ -39,7 +39,7 @@ $(document).ready(() => $.ajax({
       window.location.reload();
     }
   },
-  complete: data => {
+  success: data => {
     console.log(JSON.stringify(data));
     /* const width = $.parseJSON(data).data.inches.width;
      const height = $.parseJSON(data).data.inches.height;
