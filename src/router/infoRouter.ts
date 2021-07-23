@@ -30,15 +30,15 @@
  */
 
 import {Request, Response, Router} from 'express';
-import {LABELS} from '../util/printerUtil';
 import respond from '../util/respond';
 import env from '../env';
 
 const router: Router = Router();
 
 router.get('/labelDimensions', (request: Request, response: Response) => {
-  const height: number = LABELS[env.LABEL_DIMENSIONS][0];
-  const width: number = LABELS[env.LABEL_DIMENSIONS][1];
+  const split: Array<string> = env.LABEL_DIMENSIONS.split('x');
+  const height: number = Number.parseInt(split[0]);
+  const width: number = Number.parseInt(split[1]);
   respond(request, response, undefined, {
     millimeters: {
       height,
