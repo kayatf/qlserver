@@ -35,6 +35,9 @@ import env from '../env';
 
 const router: Router = Router();
 
+const millimetersToInches = (millimeters: number): number =>
+    Math.round(millimeters / 25.4 * 100) / 100;
+
 router.get('/labelDimensions', (request: Request, response: Response) => {
   const split: Array<string> = env.LABEL_DIMENSIONS.split('x');
   const height: number = Number.parseInt(split[0]);
@@ -45,8 +48,8 @@ router.get('/labelDimensions', (request: Request, response: Response) => {
       width
     },
     inches: {
-      height: (height / 25.4).toFixed(2),
-      width: (width / 25.4).toFixed(2)
+      height: millimetersToInches(height),
+      width: millimetersToInches(width)
     }
   });
 });
