@@ -60,10 +60,6 @@ export default cleanEnv(process.env, {
     default: false,
     desc: 'Should HTTPS be used (certificate has to be set up for this)',
   }),
-  ENCRYPT_SECRET_LENGTH: num({
-    default: 32,
-    desc: 'Length of the cryptographic key used to encrypt sessions with',
-  }),
   CERTIFICATE: str({
     default: '',
     example: 'server.crt',
@@ -89,14 +85,6 @@ export default cleanEnv(process.env, {
   LDAP_SEARCH_BASE: str({
     example: 'OU=users,DC=example,DC=com',
     desc: 'Where to search for user accounts',
-  }),
-  LDAP_SEARCH_FILTER: str({
-    example: '(&cn=*)',
-    desc: 'How to filter user accounts',
-  }),
-  LDAP_SEARCH_ATTRIBUTES: str({
-    example: 'displayName, mail',
-    desc: 'Attributes used to filter user accounts',
   }),
   PRINTER: str({
     example: 'QL-700',

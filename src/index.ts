@@ -30,14 +30,11 @@
  */
 
 import express, {Express, NextFunction, Request, Response} from 'express';
-import {initAuthenticator, requireAuthentication} from './auth/authenticator';
 import gracefulShutdown from 'http-graceful-shutdown';
 import respond from './util/respond';
-import initSession from './auth/sessionMiddleware';
 import {startQueue} from './util/printerUtil';
 import {read} from './util/fileSystemUtil';
 import queueRouter from './router/queueRouter';
-import authRouter from './router/authRouter';
 import createHttpError from 'http-errors';
 import {serve, setup} from 'swagger-ui-express';
 import swaggerConfig from './swagger.json';
@@ -48,11 +45,8 @@ import helmet from 'helmet';
 import https from 'https';
 import cors from 'cors';
 import env from './env';
-import path from "path";
-
-// allow self signed/invalid SSL certifications when not in production
-/*if (env.isDevelopment)*/
-process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+import {join} from "path";
+import ActiveDirectoryAuthenticator from './auth/ActiveDirectoryAuthenticator';
 
 (async () => {
   console.log(
@@ -72,7 +66,6 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
   app.use(morgan(env.isProduction ? 'tiny' : 'dev'));
   app.use(helmet());
   app.use(json());
-  app.use(await initSession());
   app.use(
       cors({
         origin: true,
@@ -80,9 +73,6 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
         exposedHeaders: ['set-cookie'],
       })
   );
-
-  // Serve webinterface; todo authentication
-  app.use('/editor', express.static(path.join(__dirname, 'public')));
 
   // serve swagger api docs
   app.use(
@@ -95,17 +85,24 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
       })
   );
 
-  // redirect root to docs
-  app.get('/', (request: Request, response: Response) =>
-      response.redirect(301, '/docs')
+  // initialize active directory authenticator
+  const authenticator = new ActiveDirectoryAuthenticator(
+      env.LDAP_URL,
+      env.LDAP_SEARCH_BASE,
+      env.LDAP_BIND_DN,
+      env.LDAP_BIND_CREDENTIAL
   );
 
-  // register auth router
-  initAuthenticator(app);
-  app.use('/auth', authRouter);
-
   // register queue router
-  app.use('/queue', requireAuthentication(), queueRouter);
+  app.use('/queue', authenticator.getBasicAuth(), queueRouter);
+
+  // Serve webinterface; todo authentication
+  app.use('/editor', authenticator.getBasicAuth(), express.static(join(__dirname, 'public')));
+
+  // redirect root to docs
+  app.get('/', (request: Request, response: Response) =>
+      response.redirect(301, '/editor')
+  );
 
   // handle 404
   app.use((request: Request, response: Response, next: NextFunction) =>

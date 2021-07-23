@@ -29,47 +29,33 @@
  * SOFTWARE.
  */
 
-import {Express, NextFunction, Request, RequestHandler, Response,} from 'express';
-import env from '../env';
-import passport from 'passport';
-import LdapStrategy from 'passport-ldapauth';
-import createHttpError from 'http-errors';
+import {RequestHandler} from 'express';
+import ActiveDirectory from 'activedirectory2';
+import basicAuth, {AsyncAuthorizerCallback} from 'express-basic-auth';
 
-export const initAuthenticator = (app: Express): void => {
-  passport.serializeUser((user: Express.User, done) => done(null, user));
-  passport.deserializeUser((user: Express.User, done) => done(null, user));
+export default class ActiveDirectoryAuthenticator {
+  private readonly activeDirectory: ActiveDirectory;
 
-  app.use(passport.initialize());
-  app.use(passport.session());
+  private readonly basicAuth: RequestHandler;
 
-  passport.use(
-      new LdapStrategy(
-          {
-            server: {
-              url: env.LDAP_URL,
-              bindDN: env.LDAP_BIND_DN,
-              bindCredentials: env.LDAP_BIND_CREDENTIAL,
-              searchBase: env.LDAP_SEARCH_BASE,
-              searchFilter: env.LDAP_SEARCH_FILTER,
-              searchAttributes: env.LDAP_SEARCH_ATTRIBUTES.split(','),
-            },
-          },
-          (user: unknown, done: (error: unknown, user: unknown) => void) =>
-              done(null, user)
-      )
-  );
-};
+  public constructor(ldapUrl: string, ldapBaseDn: string, ldapBindDn: string, ldapBindCredential: string) {
+    // connect to activate directory
+    this.activeDirectory = new ActiveDirectory({
+      url: ldapUrl,
+      baseDN: ldapBaseDn,
+      username: ldapBindDn,
+      password: ldapBindCredential
+    });
+    // initialize express basic auth
+    this.basicAuth = basicAuth({
+      challenge: true,
+      authorizeAsync: true,
+      authorizer: (username: string, password: string, callback: AsyncAuthorizerCallback) =>
+          this.activeDirectory.authenticate(username, password, callback)
+    });
+  }
 
-export const authenticate = (): RequestHandler =>
-    passport.authenticate('ldapauth', {failWithError: true});
-
-export const requireAuthentication = (): RequestHandler => (
-    request: Request,
-    _response: Response,
-    next: NextFunction
-) =>
-    next(
-        env.isDevelopment || request.isAuthenticated()
-            ? undefined
-            : createHttpError(401)
-    );
+  public getBasicAuth(): RequestHandler {
+    return this.basicAuth;
+  }
+}
