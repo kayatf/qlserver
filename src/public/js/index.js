@@ -40,17 +40,18 @@ $(document).ready(() => $.ajax({
     }
   },
   complete: data => {
-    const width = $.parseJSON(data).data.inches.width;
-    const height = $.parseJSON(data).data.inches.height;
-    canvasDesigner = new com.logicpartners.labelDesigner('labelDesigner',
-        width, height);
-    canvasDesigner.labelInspector.addTool(
-        new com.logicpartners.labelControl.size(canvasDesigner));
-    canvasDesigner.labelInspector.addTool(
-        new com.logicpartners.labelControl.print(canvasDesigner));
-    canvasDesigner.toolbar.addTool(
-        new com.logicpartners.designerTools.text());
-    canvasDesigner.toolbar.addTool(
-        new com.logicpartners.designerTools.image());
+    console.log(JSON.stringify(data));
+    /* const width = $.parseJSON(data).data.inches.width;
+     const height = $.parseJSON(data).data.inches.height;
+     canvasDesigner = new com.logicpartners.labelDesigner('labelDesigner',
+         width, height);
+     canvasDesigner.labelInspector.addTool(
+         new com.logicpartners.labelControl.size(canvasDesigner));
+     canvasDesigner.labelInspector.addTool(
+         new com.logicpartners.labelControl.print(canvasDesigner));
+     canvasDesigner.toolbar.addTool(
+         new com.logicpartners.designerTools.text());
+     canvasDesigner.toolbar.addTool(
+         new com.logicpartners.designerTools.image());*/
   }
 }));
