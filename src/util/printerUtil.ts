@@ -40,7 +40,7 @@ import env from '../env';
 
 // reference: https://pypi.org/project/brother-ql/
 /* eslint-disable */
-const LABELS: any = {
+export const LABELS: any = {
   '17x54': [165, 566],
   '17x87': [165, 956],
   '23x23': [202, 202],

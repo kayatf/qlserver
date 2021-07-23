@@ -29,24 +29,26 @@
  * SOFTWARE.
  */
 
-let canvasDesigner;
-$(document).ready(() => $.ajax({
-  type: 'GET',
-  dataType: 'json',
-  url: '/info/labelDimensions',
-  error: (jqXHR, textStatus, errorThrown) => alert(`Error: ${errorThrown}`),
-  complete: data => {
-    const width = data.data.inches.width;
-    const height = data.data.inches.height;
-    canvasDesigner = new com.logicpartners.labelDesigner('labelDesigner',
-        width, height);
-    canvasDesigner.labelInspector.addTool(
-        new com.logicpartners.labelControl.size(canvasDesigner));
-    canvasDesigner.labelInspector.addTool(
-        new com.logicpartners.labelControl.print(canvasDesigner));
-    canvasDesigner.toolbar.addTool(
-        new com.logicpartners.designerTools.text());
-    canvasDesigner.toolbar.addTool(
-        new com.logicpartners.designerTools.image());
-  }
-}));
+import {Request, Response, Router} from 'express';
+import {LABELS} from '../util/printerUtil';
+import respond from '../util/respond';
+import env from '../env';
+
+const router: Router = Router();
+
+router.get('labelDimensions', (request: Request, response: Response) => {
+  const height: number = LABELS[env.LABEL_DIMENSIONS][0];
+  const width: number = LABELS[env.LABEL_DIMENSIONS][1];
+  respond(request, response, undefined, {
+    millimeters: {
+      height,
+      width
+    },
+    inches: {
+      height: (height / 25.4).toFixed(2),
+      width: (width / 25.4).toFixed(2)
+    }
+  });
+});
+
+export default router;

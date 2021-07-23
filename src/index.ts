@@ -36,6 +36,7 @@ import respond from './util/respond';
 import {startQueue} from './util/printerUtil';
 import {read} from './util/fileSystemUtil';
 import queueRouter from './router/queueRouter';
+import infoRouter from './router/infoRouter';
 import createHttpError from 'http-errors';
 import {serve, setup} from 'swagger-ui-express';
 import swaggerConfig from './swagger.json';
@@ -86,6 +87,9 @@ import env from './env';
       env.LDAP_BIND_DN,
       env.LDAP_BIND_CREDENTIAL
   );
+
+  // register info router
+  app.use('/info', authenticator.getBasicAuth(), infoRouter);
 
   // register queue router
   app.use('/queue', authenticator.getBasicAuth(), queueRouter);

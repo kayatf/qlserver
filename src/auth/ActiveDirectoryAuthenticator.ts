@@ -29,9 +29,10 @@
  * SOFTWARE.
  */
 
-import {RequestHandler} from 'express';
-import ActiveDirectory from 'activedirectory2';
 import basicAuth, {AsyncAuthorizerCallback} from 'express-basic-auth';
+import ActiveDirectory from 'activedirectory2';
+import {RequestHandler} from 'express';
+import env from '../env';
 
 export default class ActiveDirectoryAuthenticator {
   private readonly activeDirectory: ActiveDirectory;
@@ -50,9 +51,12 @@ export default class ActiveDirectoryAuthenticator {
     this.basicAuth = basicAuth({
       challenge: true,
       authorizeAsync: true,
-      authorizer: (username: string, password: string, callback: AsyncAuthorizerCallback) =>
-          this.activeDirectory.authenticate(username, password,
-              (error: string, authed: boolean) => callback(undefined, error ? false : authed))
+      authorizer: (username: string, password: string, callback: AsyncAuthorizerCallback) => {
+        if (!env.isProduction)
+          callback(undefined, true);
+        else this.activeDirectory.authenticate(username, password,
+            (error: string, authed: boolean) => callback(undefined, error ? false : authed))
+      }
     });
   }
 
