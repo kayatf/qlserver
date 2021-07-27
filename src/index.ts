@@ -7,8 +7,9 @@
  *                           /____/
  *
  * This file is licensed under The MIT License
- * Copyright (c) 2020 Riegler Daniel
- * Copyright (c) 2020 ESS Engineering Software Steyr GmbH
+ * Copyright (c) 2021 Riegler Daniel
+ * Copyright (c) 2021 ESS Engineering Software Steyr GmbH
+ * Copyright (c) 2017 Thomas E. Eynon
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,11 +58,13 @@ import env from './env';
       'https://git.io/JUSCj      /____/\n' +
       '============================================\n'
   );
-  if (!env.isProduction) console.warn('Running not in production mode!');
+  if (!env.isProduction)
+    console.warn('Running not in production mode!');
   const app: Express = express();
 
   // middleware
-  if (env.PROXY) app.set('trust proxy', 1);
+  if (env.PROXY)
+    app.set('trust proxy', 1);
   app.use(morgan(env.isProduction ? 'tiny' : 'dev'));
   app.use(helmet());
   app.use(json());
@@ -91,15 +94,12 @@ import env from './env';
 
   // handle 404
   app.use((request: Request, response: Response, next: NextFunction) =>
-      next(createHttpError(404))
-  );
+      next(createHttpError(404)));
 
   // error handler
   /* eslint-disable */
-  app.use(
-      (error: Error, request: Request, response: Response, _next: NextFunction) =>
-          respond(request, response, error)
-  );
+  app.use((error: Error, request: Request, response: Response,
+           _next: NextFunction) => respond(request, response, error));
   /* eslint-enable */
 
   // start printing queue

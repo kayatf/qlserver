@@ -7,8 +7,9 @@
  *                           /____/
  *
  * This file is licensed under The MIT License
- * Copyright (c) 2020 Riegler Daniel
- * Copyright (c) 2020 ESS Engineering Software Steyr GmbH
+ * Copyright (c) 2021 Riegler Daniel
+ * Copyright (c) 2021 ESS Engineering Software Steyr GmbH
+ * Copyright (c) 2017 Thomas E. Eynon
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -131,7 +132,8 @@ export const startQueue = async (): Promise<void> => {
       printing = false;
     } catch (error) {
       printing = false;
-      if (env.isDevelopment) console.warn(error);
+      if (env.isDevelopment)
+        console.warn(error);
     }
   }, 1000);
 };

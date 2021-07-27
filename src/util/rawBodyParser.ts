@@ -7,8 +7,9 @@
  *                           /____/
  *
  * This file is licensed under The MIT License
- * Copyright (c) 2020 Riegler Daniel
- * Copyright (c) 2020 ESS Engineering Software Steyr GmbH
+ * Copyright (c) 2021 Riegler Daniel
+ * Copyright (c) 2021 ESS Engineering Software Steyr GmbH
+ * Copyright (c) 2017 Thomas E. Eynon
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,17 +40,16 @@ export default (): RequestHandler => (
     request: Request,
     response: Response,
     next: NextFunction
-) =>
-    getRawBody(
-        request,
-        {
-          length: request.headers['content-length'],
-          encoding: parse(request).parameters.charset,
-          limit: `${env.POST_MAX_SIZE}mb`,
-        },
-        (error: Error, buffer: Buffer) => {
-          if (error) return next(createHttpError(400, error));
-          request.body = buffer;
-          next();
-        }
-    );
+) => getRawBody(
+    request,
+    {
+      length: request.headers['content-length'],
+      encoding: parse(request).parameters.charset,
+      limit: `${env.POST_MAX_SIZE}mb`,
+    },
+    (error: Error, buffer: Buffer) => {
+      if (error) return next(createHttpError(400, error));
+      request.body = buffer;
+      next();
+    }
+);

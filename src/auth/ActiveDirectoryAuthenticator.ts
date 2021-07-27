@@ -7,8 +7,9 @@
  *                           /____/
  *
  * This file is licensed under The MIT License
- * Copyright (c) 2020 Riegler Daniel
- * Copyright (c) 2020 ESS Engineering Software Steyr GmbH
+ * Copyright (c) 2021 Riegler Daniel
+ * Copyright (c) 2021 ESS Engineering Software Steyr GmbH
+ * Copyright (c) 2017 Thomas E. Eynon
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,8 +56,8 @@ export default class ActiveDirectoryAuthenticator {
         // bypass login in development environment
         if (!env.isProduction)
           callback(undefined, true);
-        else this.activeDirectory.authenticate(username, password,
-            (error: string, authed: boolean) => callback(undefined, error ? false : authed))
+        else this.activeDirectory.authenticate(username, password, (error: string, authed: boolean) =>
+            callback(undefined, error ? false : authed))
       }
     });
   }
