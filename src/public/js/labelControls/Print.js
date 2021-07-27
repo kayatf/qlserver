@@ -18,15 +18,24 @@ com.logicpartners.labelControl.print = function (designer) {
   this.button = $("<button>Print</button>").css(
       {"line-height": "30px"}).appendTo(this.buttonContainer)
   .on("click", () => {
-    // Todo implement authentication, remove highlight of text and include response
+    canvasDesigner.setActiveElement();
     document.getElementById("labelDesigner").toBlob(blob => $.ajax({
-      url: "/queue",
-      type: "POST",
+      url: '/queue',
+      type: 'POST',
       data: blob,
       processData: false,
       contentType: false,
-      dataType: "application/json"
-    }), "image/png")
+      headers: {
+        'accept': 'application/json',
+      },
+      success: result => alert(
+          `Added label to print queue on position #${result.data.positionInQueue}.`
+      ),
+      error: (jqXHR, textStatus, errorThrown) => {
+        alert(`${textStatus}: ${errorThrown}`);
+        window.location.reload();
+      }
+    }), 'image/png')
   })
 
   this.update = function () {

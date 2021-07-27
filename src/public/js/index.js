@@ -31,27 +31,23 @@
 
 let canvasDesigner;
 $(document).ready(() => $.ajax({
-  type: 'GET',
-  dataType: 'json',
   url: '/info/labelDimensions',
-  error: (jqXHR, textStatus, errorThrown) => {
-    if (confirm(`Error: ${errorThrown}`)) {
-      window.location.reload();
-    }
+  method: 'GET',
+  headers: {
+    'accept': 'application/json',
   },
-  success: data => {
-    console.log(data);
-    /*const width = data.data.inches.width;
-    const height = data.data.inches.height;
+  success: result => {
     canvasDesigner = new com.logicpartners.labelDesigner('labelDesigner',
-        width, height);
+        result.data.inches.width, result.data.inches.height);
     canvasDesigner.labelInspector.addTool(
         new com.logicpartners.labelControl.size(canvasDesigner));
     canvasDesigner.labelInspector.addTool(
         new com.logicpartners.labelControl.print(canvasDesigner));
-    canvasDesigner.toolbar.addTool(
-        new com.logicpartners.designerTools.text());
-    canvasDesigner.toolbar.addTool(
-        new com.logicpartners.designerTools.image());*/
+    canvasDesigner.toolbar.addTool(new com.logicpartners.designerTools.text());
+    canvasDesigner.toolbar.addTool(new com.logicpartners.designerTools.image());
+  },
+  error: (jqXHR, textStatus, errorThrown) => {
+    alert(`${textStatus}: ${errorThrown}`);
+    window.location.reload();
   }
 }));

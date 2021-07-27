@@ -246,12 +246,6 @@ com.logicpartners.labelDesigner = function (canvasid, labelWidth, labelHeight) {
           handled = true;
         }
         break;
-      case 80:
-        if (event.ctrlKey) {
-          self.generateZPL();
-          handled = true;
-        }
-        break;
     }
 
     if (handled) {

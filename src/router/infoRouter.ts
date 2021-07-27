@@ -35,23 +35,25 @@ import env from '../env';
 
 const router: Router = Router();
 
+const labelDimensionsSplit: Array<string> = env.LABEL_DIMENSIONS.split('x');
+const labelHeight: number = Number.parseInt(labelDimensionsSplit[0]);
+const labelWidth: number = Number.parseInt(labelDimensionsSplit[1]);
+
 const millimetersToInches = (millimeters: number): number =>
     Math.round(millimeters / 25.4 * 100) / 100;
 
-router.get('/labelDimensions', (request: Request, response: Response) => {
-  const split: Array<string> = env.LABEL_DIMENSIONS.split('x');
-  const height: number = Number.parseInt(split[0]);
-  const width: number = Number.parseInt(split[1]);
-  respond(request, response, undefined, {
-    millimeters: {
-      height,
-      width
-    },
-    inches: {
-      height: millimetersToInches(height),
-      width: millimetersToInches(width)
-    }
-  });
-});
+const labelDimensions: {} = {
+  millimeters: {
+    height: labelHeight,
+    width: labelWidth
+  },
+  inches: {
+    height: millimetersToInches(labelHeight),
+    width: millimetersToInches(labelWidth)
+  }
+};
+
+router.get('/labelDimensions', (request: Request, response: Response) =>
+    respond(request, response, undefined, labelDimensions));
 
 export default router;
