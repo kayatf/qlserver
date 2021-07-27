@@ -38,8 +38,6 @@ import {read} from './util/fileSystemUtil';
 import queueRouter from './router/queueRouter';
 import infoRouter from './router/infoRouter';
 import createHttpError from 'http-errors';
-import {serve, setup} from 'swagger-ui-express';
-import swaggerConfig from './swagger.json';
 import http, {Server} from 'http';
 import {json} from 'body-parser';
 import morgan from 'morgan';
@@ -68,17 +66,6 @@ import env from './env';
   app.use(helmet());
   app.use(json());
   app.use(cors());
-
-  // serve swagger api docs
-  app.use(
-      '/docs',
-      serve,
-      setup({
-        ...swaggerConfig,
-        swaggerUrl: env.BASE_URL,
-        servers: [{url: env.BASE_URL}],
-      })
-  );
 
   // initialize active directory authenticator
   const authenticator = new ActiveDirectoryAuthenticator(

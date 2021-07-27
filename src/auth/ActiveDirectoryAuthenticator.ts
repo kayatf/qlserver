@@ -52,6 +52,7 @@ export default class ActiveDirectoryAuthenticator {
       challenge: true,
       authorizeAsync: true,
       authorizer: (username: string, password: string, callback: AsyncAuthorizerCallback) => {
+        // bypass login in development environment
         if (!env.isProduction)
           callback(undefined, true);
         else this.activeDirectory.authenticate(username, password,

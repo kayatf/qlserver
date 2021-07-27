@@ -13,7 +13,6 @@ com.logicpartners.labelControl.print = function (designer) {
   this.designer = designer;
   this.workspace = $("<div></div>").addClass("designerLabelControl").attr(
       "title", "Label Size").css({float: "right"});
-
   this.buttonContainer = $("<div></div>").appendTo(this.workspace);
   this.button = $("<button>Print</button>").css(
       {"line-height": "30px"}).appendTo(this.buttonContainer)
