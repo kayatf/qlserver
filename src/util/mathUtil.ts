@@ -30,31 +30,11 @@
  * SOFTWARE.
  */
 
-import {Request, Response, Router} from 'express';
-import respond from '../util/respond';
 import env from '../env';
 
-const router: Router = Router();
-
-const labelDimensionsSplit: Array<string> = env.LABEL_DIMENSIONS.split('x');
-const labelHeight: number = Number.parseInt(labelDimensionsSplit[0]);
-const labelWidth: number = Number.parseInt(labelDimensionsSplit[1]);
-
-const millimetersToInches = (millimeters: number): number =>
+export const millimetersToInches = (millimeters: number): number =>
     Math.round(millimeters / 25.4 * 100) / 100;
 
-const labelDimensions: {} = {
-  millimeters: {
-    height: labelHeight,
-    width: labelWidth
-  },
-  inches: {
-    height: millimetersToInches(labelHeight),
-    width: millimetersToInches(labelWidth)
-  }
-};
-
-router.get('/labelDimensions', (request: Request, response: Response) =>
-    respond(request, response, undefined, labelDimensions));
-
-export default router;
+const labelDimensionsSplit: Array<string> = env.LABEL_DIMENSIONS.split('x');
+export const labelHeight: number = Number.parseInt(labelDimensionsSplit[0]);
+export const labelWidth: number = Number.parseInt(labelDimensionsSplit[1]);

@@ -37,7 +37,7 @@ import respond from './util/respond';
 import {startQueue} from './util/printerUtil';
 import {read} from './util/fileSystemUtil';
 import queueRouter from './router/queueRouter';
-import infoRouter from './router/infoRouter';
+import labelRouter from './router/labelRouter';
 import createHttpError from 'http-errors';
 import http, {Server} from 'http';
 import {json} from 'body-parser';
@@ -77,9 +77,9 @@ import env from './env';
       env.LDAP_BIND_DN,
       env.LDAP_BIND_CREDENTIAL
   );
-
-  // register info router
-  app.use('/info', authenticator.getBasicAuth(), infoRouter);
+  
+  // register label router
+  app.use('/label', authenticator.getBasicAuth(), labelRouter);
 
   // register queue router
   app.use('/queue', authenticator.getBasicAuth(), queueRouter);

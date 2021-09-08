@@ -4,7 +4,11 @@
     "rootDir": ".",
     "outDir": "build",
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "lib": [
+      "es6",
+      "dom"
+    ]
   },
   "include": [
     "src/**/*.ts",
