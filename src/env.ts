@@ -71,6 +71,30 @@ export default cleanEnv(process.env, {
     example: 'server.key',
     desc: "Certificate's private key used to encrypt HTTPS traffic",
   }),
+  USE_APP_PROXY: bool({
+    default: false,
+    desc: 'Enable if running an MS app proxy in front of sniepit'
+  }),
+  APP_PROXY_USER: str({
+    default: '',
+    example: 'daniel.riegler@essteyr.com',
+    desc: 'Username to log in to MS app proxy.'
+  }),
+  APP_PROXY_PASSWORD: str({
+    default: '',
+    example: '12345678',
+    desc: 'Password to log in to MS app proxy'
+  }),
+  SNIPEIT_USER: str({
+    default: 'administrator',
+    example: 'daniel.riegler',
+    desc: 'Username to log in to snipeit'
+  }),
+  SNIPEIT_PASSWORD: str({
+    default: '',
+    example: '12345678',
+    desc: 'Password to log in to snipeit'
+  }),
   LDAP_URL: url({
     example: 'ldap://my.domain.com',
     desc: 'URL of the Active Directory server',
