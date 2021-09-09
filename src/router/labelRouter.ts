@@ -60,20 +60,22 @@ router.get('/inventory/:query', async (request: Request, response: Response) => 
   const context: BrowserContext = await browser.newContext();
 
   const page: Page = await context.newPage();
-  await page.goto('https://inventory.essteyr.com');
+  await page.goto(env.SNIPEIT_URL);
   const onNavigation: Promise<any> = page.waitForNavigation();
 
-  // Fill in username form
-  await onNavigation;
-  await page.waitForSelector('[name="loginfmt"]');
-  await page.type('[name="loginfmt"]', env.APP_PROXY_USER);
-  await page.click('[type="submit"]');
+  if (env.USE_APP_PROXY) {
+    // Fill in username form
+    await onNavigation;
+    await page.waitForSelector('[name="loginfmt"]');
+    await page.type('[name="loginfmt"]', env.APP_PROXY_USER);
+    await page.click('[type="submit"]');
 
-  // Fill in password form
-  await onNavigation;
-  await page.waitForSelector('input[type="password"]');
-  await page.type('input[type="password"]', env.APP_PROXY_PASSWORD);
-  await page.click('input[type="submit"]');
+    // Fill in password form
+    await onNavigation;
+    await page.waitForSelector('input[type="password"]');
+    await page.type('input[type="password"]', env.APP_PROXY_PASSWORD);
+    await page.click('input[type="submit"]');
+  }
 
   // Login to inventory
   await onNavigation;
@@ -83,7 +85,7 @@ router.get('/inventory/:query', async (request: Request, response: Response) => 
 
   // Search assets
   await onNavigation;
-  await page.goto('https://inventory.essteyr.com/hardware');
+  await page.goto(`${env.SNIPEIT_URL}/hardware`);
   await page.type(
       '#bulkForm > div > div > div.bootstrap-table.bootstrap3 > div.fixed-table-toolbar > div.pull-right.search.input-group > div > input',
       request.params.query

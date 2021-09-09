@@ -85,6 +85,11 @@ export default cleanEnv(process.env, {
     example: '12345678',
     desc: 'Password to log in to MS app proxy'
   }),
+  SNIPEIT_URL: url({
+    default: '',
+    example: 'https://inventory.test.com',
+    desc: 'URL to the snipeit instance'
+  }),
   SNIPEIT_USER: str({
     default: 'administrator',
     example: 'daniel.riegler',
