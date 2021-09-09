@@ -35,6 +35,9 @@ import {Request, Response, Router} from 'express';
 import {Browser, BrowserContext, chromium, Page} from 'playwright';
 import respond from '../util/respond';
 import env from '../env';
+import {zip} from '../util/fileSystemUtil';
+import {PassThrough} from 'stream';
+import {fromBuffer} from "file-type";
 
 const router: Router = Router();
 
@@ -52,7 +55,7 @@ const labelDimensions: {} = {
 router.get('/dimensions', (request: Request, response: Response) =>
     respond(request, response, undefined, labelDimensions));
 
-router.get('/inventory/:tag', async (request: Request, response: Response) => {
+router.get('/inventory/:query', async (request: Request, response: Response) => {
   const browser: Browser = await chromium.launch({headless: env.isProduction});
   const context: BrowserContext = await browser.newContext();
 
@@ -83,7 +86,7 @@ router.get('/inventory/:tag', async (request: Request, response: Response) => {
   await page.goto('https://inventory.essteyr.com/hardware');
   await page.type(
       '#bulkForm > div > div > div.bootstrap-table.bootstrap3 > div.fixed-table-toolbar > div.pull-right.search.input-group > div > input',
-      request.params.tag // todo validate asset tag
+      request.params.query
   );
 
   // Generate labels
@@ -94,16 +97,29 @@ router.get('/inventory/:tag', async (request: Request, response: Response) => {
 
   // Todo fail if no assets found
 
-  // Export labels
   await onNavigation;
   await page.waitForTimeout(1000);
 
-  // todo export label(s) from .label
-
-  await page.waitForTimeout(10000);
-
+  // Export label(s)
+  let buffer: Buffer;
+  const labels = await page.$$('.label');
+  if (labels.length === 1) {
+    buffer = await labels[0].screenshot();
+  } else {
+    // Create zip archive
+    const files: Buffer[] = new Array<Buffer>();
+    for (const label of labels)
+      files.push(await label.screenshot())
+    buffer = await zip(files);
+  }
+  // Send response and clean up
+  // Todo fix empty zip file bug
   await browser.close();
-  response.sendStatus(200);
+  const stream: PassThrough = new PassThrough();
+  stream.end(buffer);
+  response.set('Content-Disposition', `attachment; filename=${labels.length === 1 ? 'label.png' : 'labels.zip'}`);
+  response.set('Content-Type', (await fromBuffer(buffer))?.mime);
+  stream.pipe(response);
 });
 
 export default router;

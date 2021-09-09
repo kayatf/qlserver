@@ -39,46 +39,46 @@ import {cwd} from 'process';
 
 const formatPath = (path: PathLike) => join(cwd(), path.toString());
 
-export const unzip = (
-    zipFile: Buffer,
-    ...fileTypes: MimeType[]
-): Promise<Buffer[]> =>
-    new Promise<Buffer[]>(resolve => {
-      const files = new Array<Buffer>();
-      const entries: IZipEntry[] = new AdmZip(zipFile).getEntries();
-      entries.forEach((entry: IZipEntry, index: number) =>
-          entry.getDataAsync(async buffer => {
-            const type: FileTypeResult | undefined = await fromBuffer(buffer);
-            if (type && fileTypes.includes(type.mime)) files.push(buffer);
-            if (entries.length - 1 === index) resolve(files);
-          })
-      );
-    });
+export const zip = (files: Buffer[]): Promise<Buffer> => new Promise(resolve => {
+  const archive: AdmZip = new AdmZip();
+  files.forEach(async (file: Buffer, index: number) => {
+    archive.addFile(`file-${index + 1}.${(await fromBuffer(file))?.ext}`, file)
+  });
+  resolve(archive.toBuffer()); // Todo handle async
+});
+
+export const unzip = (zipFile: Buffer, ...fileTypes: MimeType[]): Promise<Buffer[]> => new Promise(resolve => {
+  const files = new Array<Buffer>();
+  const entries: IZipEntry[] = new AdmZip(zipFile).getEntries();
+  entries.forEach((entry: IZipEntry, index: number) =>
+      entry.getDataAsync(async buffer => {
+        const type: FileTypeResult | undefined = await fromBuffer(buffer);
+        if (type && fileTypes.includes(type.mime)) files.push(buffer);
+        if (entries.length - 1 === index) resolve(files);
+      })
+  );
+});
 
 // todo check asynchronously
-export const exists = (path: PathLike): Promise<boolean> =>
-    new Promise(resolve => resolve(existsSync(formatPath(path))));
+export const exists = (path: PathLike): Promise<boolean> => new Promise(resolve => resolve(existsSync(formatPath(path))));
 
-export const write = (path: PathLike, data: string): Promise<string> =>
-    new Promise((resolve, reject) => {
-      writeFile(formatPath(path), data, error => {
-        if (error) reject(error);
-        else resolve(data);
-      });
-    });
+export const write = (path: PathLike, data: string): Promise<string> => new Promise((resolve, reject) => {
+  writeFile(formatPath(path), data, error => {
+    if (error) reject(error);
+    else resolve(data);
+  });
+});
 
-export const remove = (path: PathLike): Promise<void> =>
-    new Promise<void>(resolve => {
-      unlink(path, error => {
-        if (error) console.warn(error);
-        resolve();
-      });
-    });
+export const remove = (path: PathLike): Promise<void> => new Promise(resolve => {
+  unlink(path, error => {
+    if (error) console.warn(error);
+    resolve();
+  });
+});
 
-export const read = (path: PathLike): Promise<string> =>
-    new Promise((resolve, reject) =>
-        readFile(formatPath(path), {encoding: 'utf-8'}, (error, data) => {
-          if (error) reject(error);
-          else resolve(data);
-        })
-    );
+export const read = (path: PathLike): Promise<string> => new Promise((resolve, reject) =>
+    readFile(formatPath(path), {encoding: 'utf-8'}, (error, data) => {
+      if (error) reject(error);
+      else resolve(data);
+    })
+);
