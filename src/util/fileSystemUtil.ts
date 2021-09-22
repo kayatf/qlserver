@@ -42,9 +42,10 @@ const formatPath = (path: PathLike) => join(cwd(), path.toString());
 export const zip = (files: Buffer[]): Promise<Buffer> => new Promise(resolve => {
   const archive: AdmZip = new AdmZip();
   files.forEach(async (file: Buffer, index: number) => {
-    archive.addFile(`file-${index + 1}.${(await fromBuffer(file))?.ext}`, file)
+    archive.addFile(`file-${index + 1}.${(await fromBuffer(file))?.ext}`, file);
+    if (index === files.length - 1)
+      resolve(archive.toBuffer());
   });
-  resolve(archive.toBuffer()); // Todo handle async
 });
 
 export const unzip = (zipFile: Buffer, ...fileTypes: MimeType[]): Promise<Buffer[]> => new Promise(resolve => {

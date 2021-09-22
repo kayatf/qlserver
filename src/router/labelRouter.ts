@@ -37,7 +37,8 @@ import respond from '../util/respond';
 import env from '../env';
 import {zip} from '../util/fileSystemUtil';
 import {PassThrough} from 'stream';
-import {fromBuffer} from "file-type";
+import {fromBuffer} from 'file-type';
+import createHttpError from "http-errors";
 
 const router: Router = Router();
 
@@ -91,37 +92,46 @@ router.get('/inventory/:query', async (request: Request, response: Response) => 
       request.params.query
   );
 
-  // Generate labels
   await page.waitForTimeout(1000);
-  await page.click('#assetsListingTable > thead > tr > th.bs-checkbox > div.th-inner > label > input[type=checkbox]');
-  await page.selectOption('#toolbar > select', {index: 2})
-  await page.click('#bulkEdit');
+  // Todo better error handling
+  try {
+    // Check if assets were found
+    await page.waitForSelector(
+        '#bulkForm > div > div > div.bootstrap-table.bootstrap3 > div.fixed-table-pagination.clearfix > div.pull-left.pagination-detail > span.pagination-info',
+        {timeout: 1000}
+    );
+    // Generate label(s)
+    await page.click('#assetsListingTable > thead > tr > th.bs-checkbox > div.th-inner > label > input[type=checkbox]');
+    await page.selectOption('#toolbar > select', {index: 2})
+    await page.click('#bulkEdit');
 
-  // Todo fail if no assets found
+    await onNavigation;
+    await page.waitForTimeout(1000);
 
-  await onNavigation;
-  await page.waitForTimeout(1000);
+    // Export label(s)
+    let buffer: Buffer;
+    const labels = await page.$$('.label');
+    if (labels.length === 1) {
+      buffer = await labels[0].screenshot();
+    } else {
+      // Create zip archive
+      const files: Buffer[] = new Array<Buffer>();
+      for (const label of labels)
+        files.push(await label.screenshot())
+      buffer = await zip(files);
+    }
+    // Send response
+    const stream: PassThrough = new PassThrough();
+    stream.end(buffer);
+    response.set('Content-Disposition', `attachment; filename=${labels.length === 1 ? 'label.png' : 'labels.zip'}`);
+    response.set('Content-Type', (await fromBuffer(buffer))?.mime);
+    stream.pipe(response);
 
-  // Export label(s)
-  let buffer: Buffer;
-  const labels = await page.$$('.label');
-  if (labels.length === 1) {
-    buffer = await labels[0].screenshot();
-  } else {
-    // Create zip archive
-    const files: Buffer[] = new Array<Buffer>();
-    for (const label of labels)
-      files.push(await label.screenshot())
-    buffer = await zip(files);
+    // Close browser
+  } catch (_error) {
+    respond(request, response, createHttpError(404, `Could not match assets against query "${request.params.query}".`));
   }
-  // Send response and clean up
-  // Todo fix empty zip file bug
   await browser.close();
-  const stream: PassThrough = new PassThrough();
-  stream.end(buffer);
-  response.set('Content-Disposition', `attachment; filename=${labels.length === 1 ? 'label.png' : 'labels.zip'}`);
-  response.set('Content-Type', (await fromBuffer(buffer))?.mime);
-  stream.pipe(response);
 });
 
 export default router;
