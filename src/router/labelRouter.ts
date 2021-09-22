@@ -38,7 +38,7 @@ import env from '../env';
 import {zip} from '../util/fileSystemUtil';
 import {PassThrough} from 'stream';
 import {fromBuffer} from 'file-type';
-import createHttpError from "http-errors";
+import createHttpError from 'http-errors';
 
 const router: Router = Router();
 
@@ -93,45 +93,47 @@ router.get('/inventory/:query', async (request: Request, response: Response) => 
   );
 
   await page.waitForTimeout(1000);
-  // Todo better error handling
+
+  // Check if assets were found
   try {
-    // Check if assets were found
     await page.waitForSelector(
         '#bulkForm > div > div > div.bootstrap-table.bootstrap3 > div.fixed-table-pagination.clearfix > div.pull-left.pagination-detail > span.pagination-info',
         {timeout: 1000}
     );
-    // Generate label(s)
-    await page.click('#assetsListingTable > thead > tr > th.bs-checkbox > div.th-inner > label > input[type=checkbox]');
-    await page.selectOption('#toolbar > select', {index: 2})
-    await page.click('#bulkEdit');
-
-    await onNavigation;
-    await page.waitForTimeout(1000);
-
-    // Export label(s)
-    let buffer: Buffer;
-    const labels = await page.$$('.label');
-    if (labels.length === 1) {
-      buffer = await labels[0].screenshot();
-    } else {
-      // Create zip archive
-      const files: Buffer[] = new Array<Buffer>();
-      for (const label of labels)
-        files.push(await label.screenshot())
-      buffer = await zip(files);
-    }
-    // Send response
-    const stream: PassThrough = new PassThrough();
-    stream.end(buffer);
-    response.set('Content-Disposition', `attachment; filename=${labels.length === 1 ? 'label.png' : 'labels.zip'}`);
-    response.set('Content-Type', (await fromBuffer(buffer))?.mime);
-    stream.pipe(response);
-
-    // Close browser
   } catch (_error) {
+    await browser.close();
     respond(request, response, createHttpError(404, `Could not match assets against query "${request.params.query}".`));
+    return;
   }
+
+  // Generate label(s)
+  await page.click('#assetsListingTable > thead > tr > th.bs-checkbox > div.th-inner > label > input[type=checkbox]');
+  await page.selectOption('#toolbar > select', {index: 2})
+  await page.click('#bulkEdit');
+
+  await onNavigation;
+  await page.waitForTimeout(1000);
+
+  // Export label(s)
+  let buffer: Buffer;
+  const labels = await page.$$('.label');
+  if (labels.length === 1) {
+    buffer = await labels[0].screenshot();
+  } else {
+    // Create zip archive
+    const files: Buffer[] = new Array<Buffer>();
+    for (const label of labels)
+      files.push(await label.screenshot())
+    buffer = await zip(files);
+  }
+  // Close browser
   await browser.close();
+  // Send response
+  const stream: PassThrough = new PassThrough();
+  stream.end(buffer);
+  response.set('Content-Disposition', `attachment; filename=${labels.length === 1 ? 'label.png' : 'labels.zip'}`);
+  response.set('Content-Type', (await fromBuffer(buffer))?.mime);
+  stream.pipe(response);
 });
 
 export default router;

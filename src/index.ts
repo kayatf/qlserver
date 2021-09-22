@@ -77,7 +77,7 @@ import env from './env';
       env.LDAP_BIND_DN,
       env.LDAP_BIND_CREDENTIAL
   );
-  
+
   // register label router
   app.use('/label', authenticator.getBasicAuth(), labelRouter);
 
