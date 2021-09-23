@@ -32,7 +32,7 @@
 
 let canvasDesigner;
 $(document).ready(() => $.ajax({
-  url: '/info/labelDimensions',
+  url: '/label/dimensions',
   method: 'GET',
   headers: {
     'accept': 'application/json',

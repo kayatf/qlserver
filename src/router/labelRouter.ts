@@ -56,7 +56,7 @@ const labelDimensions: {} = {
 router.get('/dimensions', (request: Request, response: Response) =>
     respond(request, response, undefined, labelDimensions));
 
-router.get('/inventory/:query', async (request: Request, response: Response) => {
+router.get('/generate/:query', async (request: Request, response: Response) => {
   const browser: Browser = await chromium.launch({headless: env.isProduction});
   const context: BrowserContext = await browser.newContext();
 
