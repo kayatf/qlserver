@@ -117,7 +117,8 @@ router.get('/generate/:query', async (request: Request, response: Response) => {
   // Export label(s)
   let buffer: Buffer;
   const labels = await page.$$('.label');
-  if (labels.length === 1) {
+  // Return single (first) image if there is only one match or accepted mime type is image/png
+  if (labels.length === 1 || request.headers['Accept'] === 'image/png') {
     buffer = await labels[0].screenshot();
   } else {
     // Create zip archive
