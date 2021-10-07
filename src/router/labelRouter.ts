@@ -35,10 +35,8 @@ import {Request, Response, Router} from 'express';
 import {Browser, BrowserContext, chromium, Page} from 'playwright';
 import respond from '../util/respond';
 import env from '../env';
-import {zip} from '../util/fileSystemUtil';
 import {PassThrough} from 'stream';
-import {fromBuffer} from 'file-type';
-import createHttpError from 'http-errors';
+import createHttpError from "http-errors";
 
 const router: Router = Router();
 
@@ -84,57 +82,36 @@ router.get('/generate/:query', async (request: Request, response: Response) => {
   await page.type('#password', env.SNIPEIT_PASSWORD);
   await page.click('body > form > div > div > div > div > div.box-footer > button');
 
-  // Search assets
+  // Search asset
   await onNavigation;
-  await page.goto(`${env.SNIPEIT_URL}/hardware`);
-  await page.type(
-      '#bulkForm > div > div > div.bootstrap-table.bootstrap3 > div.fixed-table-toolbar > div.pull-right.search.input-group > div > input',
-      request.params.query
-  );
+  await page.type('#tagSearch', request.params.query);
+  await page.click('body > div.wrapper > header > nav > div.navbar-custom-menu > ul > li:nth-child(6) > form > div > div.col-xs-1 > button');
 
-  await page.waitForTimeout(1000);
-
-  // Check if assets were found
+  // Generate label
+  await onNavigation;
+  // Check if asset could be found
+  // Todo fix bug
   try {
-    await page.waitForSelector(
-        '#bulkForm > div > div > div.bootstrap-table.bootstrap3 > div.fixed-table-pagination.clearfix > div.pull-left.pagination-detail > span.pagination-info',
-        {timeout: 1000}
-    );
+    await page.waitForSelector('#bulkEdit', {timeout: 1000});
   } catch (_error) {
+    console.error('Error!');
     await browser.close();
-    respond(request, response, createHttpError(404, `Could not match assets against query "${request.params.query}".`));
+    respond(request, response, createHttpError(404, 'Could not find asset.'));
     return;
   }
-
-  // Generate label(s)
-  await page.click('#assetsListingTable > thead > tr > th.bs-checkbox > div.th-inner > label > input[type=checkbox]');
-  await page.selectOption('#toolbar > select', {index: 2})
   await page.click('#bulkEdit');
 
+  // Send response
   await onNavigation;
-  await page.waitForTimeout(1000);
+  await page.waitForSelector('.label');
+  const stream: PassThrough = new PassThrough();
+  stream.end(await (await page.$$('.label'))[0].screenshot());
+  response.set('Content-Disposition', `attachment; filename=${request.params.query.toUpperCase()}.png`);
+  response.set('Content-Type', 'image/png');
+  stream.pipe(response);
 
-  // Export label(s)
-  let buffer: Buffer;
-  const labels = await page.$$('.label');
-  // Todo check for mime type
-  if (labels.length === 1) {
-    buffer = await labels[0].screenshot();
-  } else {
-    // Create zip archive
-    const files: Buffer[] = new Array<Buffer>();
-    for (const label of labels)
-      files.push(await label.screenshot())
-    buffer = await zip(files);
-  }
   // Close browser
   await browser.close();
-  // Send response
-  const stream: PassThrough = new PassThrough();
-  stream.end(buffer);
-  response.set('Content-Disposition', `attachment; filename=${labels.length === 1 ? 'label.png' : 'labels.zip'}`);
-  response.set('Content-Type', (await fromBuffer(buffer))?.mime);
-  stream.pipe(response);
 });
 
 export default router;
